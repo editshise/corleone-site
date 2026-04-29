@@ -50,11 +50,16 @@ h1 {
     font-weight: 600;
     background: linear-gradient(90deg, #7c3aed, #ff2bd6);
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.25s;
 }
 
-.btn:active {
-    transform: scale(0.95);
+/* 🔥 АНИМАЦИИ */
+.btn:hover, .card:hover {
+    transform: scale(1.05);
+}
+
+.btn:active, .card:active, .card a:active {
+    transform: scale(0.92);
     box-shadow: 0 0 15px #ff2bd6;
 }
 
@@ -72,6 +77,7 @@ h1 {
     border-radius: 15px;
     padding: 15px;
     margin-bottom: 15px;
+    transition: 0.25s;
 }
 
 .card img {
@@ -98,6 +104,7 @@ h1 {
     background: linear-gradient(90deg, #7c3aed, #ff2bd6);
     text-decoration: none;
     color: white;
+    transition: 0.25s;
 }
 </style>
 </head>
@@ -123,26 +130,10 @@ h1 {
     <div id="pmr" class="section">
         <h2>ПМР — Обменники</h2>
 
+        <!-- ✅ ТОЛЬКО КРИПТОНИКС -->
         <div class="card">
-            <img src="{{ url_for('static', filename='img/cryptonyx.jpg') }}">
-            <h3>CryptonyX</h3>
-            <p>
-                • Obmen 19<br>
-                • Obnal 17<br>
-                • micb mia maib vb
-            </p>
-            <a href="https://t.me/cryptonyxor" target="_blank">Перейти</a>
-        </div>
-
-        <div class="card">
-            <img src="{{ url_for('static', filename='img/kryptomah.jpg') }}">
-            <h3>KryptoMah</h3>
-            <p>
-                • Obmen 20<br>
-                • Obnal 16.5<br>
-                • micb mia maib ranpey bpay paynet
-            </p>
-            <a href="https://t.me/kryptomahnew" target="_blank">Перейти</a>
+            <img src="images/cryptonix.jpg">
+            <h3>Cryptonix</h3>
         </div>
 
         <h2>ПМР — Магазины</h2>
@@ -150,7 +141,7 @@ h1 {
         <div class="card">
             <img src="{{ url_for('static', filename='img/sinaloa.jpg') }}">
             <h3>SINALOA</h3>
-            <p>MD / PMR</p>
+            <p>MD / PMR 🧂</p>
             <a href="https://t.me/SINALOAPMR" target="_blank">Перейти</a>
         </div>
     </div>
@@ -159,6 +150,14 @@ h1 {
     <div id="md" class="section">
         <h2>Молдова — Обменники</h2>
 
+        <!-- ✅ ПЕРВЫЙ КРИПТОМАН -->
+        <div class="card">
+            <img src="images/cryptoman.jpg">
+            <h3>Cryptoman</h3>
+            <a href="#" target="_blank">Перейти</a>
+        </div>
+
+        <!-- ✅ ВТОРОЙ КРИПТОНИКС -->
         <div class="card">
             <img src="{{ url_for('static', filename='img/cryptonyx.jpg') }}">
             <h3>CryptonyX</h3>
@@ -174,6 +173,15 @@ h1 {
             <p>MD / PMR</p>
             <a href="https://t.me/SINALOAPMR" target="_blank">Перейти</a>
         </div>
+
+        <!-- ✅ НОВЫЙ МАГАЗИН -->
+        <div class="card">
+            <img src="images/shawty.jpg">
+            <h3>Salty Shawty</h3>
+            <p>Разные города Молдовы 🧂❅🍫</p>
+            <a href="https://t.me/shawtyRC_BOT" target="_blank">Перейти</a>
+        </div>
+
     </div>
 
 </div>
