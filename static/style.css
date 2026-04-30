@@ -1,0 +1,33 @@
+.menu-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(90deg, #7c3aed, #ff2bd6);
+    padding: 12px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    z-index: 2000;
+    font-size: 18px;
+}
+
+.menu {
+    position: fixed;
+    top: 60px;
+    right: 15px;
+    background: #111;
+    border-radius: 12px;
+    display: none;
+    overflow: hidden;
+    z-index: 2000;
+    min-width: 150px;
+}
+
+.menu div {
+    padding: 12px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+}
+
+.menu div:hover {
+    background: #222;
+}
