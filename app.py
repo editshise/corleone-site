@@ -5,7 +5,6 @@ app = Flask(__name__)
 app.secret_key = "secret123"
 
 
-# главная страница
 @app.route('/')
 def home():
     conn = sqlite3.connect('database.db')
@@ -19,7 +18,6 @@ def home():
     return render_template('index.html', messages=messages[::-1])
 
 
-# отправка сообщения
 @app.route('/send', methods=['POST'])
 def send():
     if 'user' not in session:
@@ -38,7 +36,6 @@ def send():
     return redirect('/')
 
 
-# регистрация
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -56,7 +53,6 @@ def register():
     return render_template('register.html')
 
 
-# вход
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -74,6 +70,3 @@ def login():
             return redirect('/')
 
     return render_template('login.html')
-
-
-app.run(debug=True)
