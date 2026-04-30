@@ -196,6 +196,27 @@ h1 {
 
 </div>
 
+<div id="chat" class="section">
+    <h2>Общий чат</h2>
+
+    <div class="chat-box" id="chatBox">
+        {% for m in messages %}
+            <div class="msg"><b>{{m[0]}}</b>: {{m[1]}}</div>
+        {% endfor %}
+    </div>
+
+   {% if session.get('user') %}
+<form method="post" action="/send" class="chat-form">
+    <input class="chat-input" name="message" placeholder="Написать сообщение..." required>
+    <button class="chat-btn">Отправить</button>
+</form>
+{% else %}
+<p style="text-align:center; color:#aaa;">
+    Чтобы писать в чат — войдите в аккаунт
+</p>
+{% endif %}
+</div>
+
 <script>
 function scrollToBlock(id) {
     document.getElementById(id).scrollIntoView({
@@ -204,5 +225,37 @@ function scrollToBlock(id) {
 }
 </script>
 
+<script>
+window.onload = function() {
+    let box = document.getElementById("chatBox");
+    if (box) {
+        box.scrollTop = box.scrollHeight;
+    }
+}
+</script>
+
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
+
+<div class="menu" id="menu">
+    {% if session.get('user') %}
+        <div>👤 {{ session.get('user') }}</div>
+    {% else %}
+        <div onclick="openPage('/login')">Вход</div>
+        <div onclick="openPage('/register')">Регистрация</div>
+    {% endif %}
+</div>
+
 </body>
+
+<script>
+function toggleMenu() {
+    let menu = document.getElementById("menu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+function openPage(url) {
+    window.location.href = url;
+}
+</script>
+
 </html>
