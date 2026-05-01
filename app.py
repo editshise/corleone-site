@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import sqlite3
 
@@ -8,6 +8,7 @@ from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+app.permanent_session_lifetime = timedelta(days=30)
 ADMIN_PASSWORD = "148corleone"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -223,6 +224,7 @@ def admin_login():
     error = None
     if request.method == "POST":
         if request.form.get("password") == ADMIN_PASSWORD:
+            session.permanent = True
             session["admin"] = True
             return redirect("/admin")
         error = "Неверный пароль"
@@ -436,6 +438,7 @@ def register():
         conn.commit()
         conn.close()
 
+        session.permanent = True
         session["user"] = user
         return redirect("/")
 
@@ -455,6 +458,7 @@ def login():
         conn.close()
 
         if result:
+            session.permanent = True
             session["user"] = user
             return redirect("/")
 
