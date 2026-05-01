@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ЧАТ | Corleone</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0a;
+    color: white;
+}
+
+.chat-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 720px;
+    margin: 0 auto;
+    background: #101010;
+}
+
+.chat-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #171717;
+    border-bottom: 1px solid #252525;
+}
+
+.back-link {
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #242424;
+    color: white;
+    text-decoration: none;
+    font-size: 22px;
+}
+
+.header-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #2a2a2a;
+}
+
+.chat-title {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-title h1 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.chat-title p {
+    margin: 2px 0 0;
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.online-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 12px rgba(34,197,94,0.85);
+}
+
+.profile-link {
+    color: #c4b5fd;
+    font-size: 13px;
+    text-decoration: none;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 12px 110px;
+    background:
+        radial-gradient(circle at top left, rgba(0,234,255,0.08), transparent 32%),
+        radial-gradient(circle at bottom right, rgba(255,43,214,0.08), transparent 30%),
+        #0d0d0d;
+}
+
+.date-separator {
+    width: max-content;
+    margin: 10px auto 16px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    color: #d1d5db;
+    font-size: 12px;
+}
+
+.message {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+    animation: messageIn 0.28s ease both;
+}
+
+.message.mine {
+    flex-direction: row-reverse;
+}
+
+.message.pinned .bubble {
+    border: 1px solid rgba(250,204,21,0.55);
+    box-shadow: 0 0 0 1px rgba(250,204,21,0.12), 0 12px 32px rgba(250,204,21,0.12);
+}
+
+.message-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #242424;
+}
+
+.bubble {
+    max-width: min(74%, 480px);
+    padding: 9px 11px 7px;
+    border-radius: 16px 16px 16px 5px;
+    background: #202020;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.2);
+}
+
+.message.mine .bubble {
+    border-radius: 16px 16px 5px 16px;
+    background: linear-gradient(135deg, #6d28d9, #db2777);
+}
+
+.sender {
+    margin-bottom: 4px;
+    color: #93c5fd;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.admin-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: linear-gradient(90deg,#facc15,#f97316);
+    color: #111;
+    font-size: 9px;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+.reply-preview {
+    margin-bottom: 7px;
+    padding: 7px 9px;
+    border-left: 3px solid rgba(0,234,255,0.75);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: #dbeafe;
+    font-size: 12px;
+}
+
+.reply-preview b {
+    display: block;
+    margin-bottom: 2px;
+    color: white;
+}
+
+.message.mine .sender {
+    color: #fce7f3;
+}
+
+.text {
+    font-size: 14px;
+    line-height: 1.35;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.file-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 7px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+audio {
+    width: 230px;
+    max-width: 100%;
+    margin-top: 8px;
+}
+
+.time {
+    margin-top: 4px;
+    color: rgba(255,255,255,0.58);
+    font-size: 10px;
+    text-align: right;
+}
+
+.pinned-label {
+    margin-bottom: 6px;
+    color: #fde68a;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.message-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.message-actions form {
+    margin: 0;
+}
+
+.reaction-row {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.reaction-row form {
+    margin: 0;
+}
+
+.reaction-row button {
+    border: none;
+    border-radius: 999px;
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.11);
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.message-actions button {
+    border: none;
+    border-radius: 999px;
+    padding: 6px 9px;
+    background: rgba(255,255,255,0.12);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.edit-form {
+    display: none;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.edit-form.active {
+    display: flex;
+}
+
+.edit-form input {
+    min-width: 0;
+    flex: 1;
+    border: none;
+    border-radius: 12px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.14);
+    color: white;
+    outline: none;
+}
+
+.edit-form button {
+    border: none;
+    border-radius: 12px;
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.18);
+    color: white;
+    cursor: pointer;
+}
+
+.empty {
+    margin: 20vh auto 0;
+    max-width: 280px;
+    color: #9ca3af;
+    text-align: center;
+    font-size: 14px;
+}
+
+.composer {
+    position: fixed;
+    left: 50%;
+    bottom: 0;
+    width: min(720px, 100%);
+    transform: translateX(-50%);
+    padding: 10px 12px 14px;
+    background: #171717;
+    border-top: 1px solid #252525;
+}
+
+.login-note {
+    display: flex;
+    gap: 8px;
+}
+
+.login-note a {
+    flex: 1;
+    padding: 12px;
+    border-radius: 14px;
+    text-align: center;
+    background: linear-gradient(90deg,#7c3aed,#ff2bd6);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.composer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.message-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    max-height: 120px;
+    padding: 12px 14px;
+    border: none;
+    border-radius: 22px;
+    outline: none;
+    resize: none;
+    background: #262626;
+    color: white;
+    font: inherit;
+}
+
+.icon-btn,
+.send-btn {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+    border: none;
+    border-radius: 50%;
+    background: #262626;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.send-btn {
+    background: linear-gradient(135deg,#7c3aed,#ff2bd6);
+    font-weight: 800;
+}
+
+.recording {
+    outline: 2px solid #ef4444;
+    color: #fecaca;
+}
+
+.file-name {
+    margin: 8px 52px 0;
+    color: #a7f3d0;
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.replying-to {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: 0 52px 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(0,234,255,0.10);
+    color: #bfdbfe;
+    font-size: 12px;
+}
+
+.replying-to.active {
+    display: flex;
+}
+
+.replying-to button {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.14);
+    color: white;
+}
+
+.down-btn {
+    position: fixed;
+    right: max(14px, calc((100vw - 720px) / 2 + 14px));
+    bottom: 92px;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#7c3aed,#ff2bd6);
+    color: white;
+    font-size: 20px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: 0.18s ease;
+}
+
+.down-btn.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.avatar-form {
+    position: fixed;
+    right: max(12px, calc((100vw - 720px) / 2 + 12px));
+    bottom: 78px;
+}
+
+.avatar-form label {
+    display: block;
+    padding: 9px 11px;
+    border-radius: 14px;
+    background: #262626;
+    color: #ddd;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.avatar-form input,
+.hidden-file,
+.hidden-voice {
+    display: none;
+}
+
+@media (max-width: 480px) {
+    .bubble {
+        max-width: 80%;
+    }
+
+    .profile-link {
+        display: none;
+    }
+}
+
+@keyframes messageIn {
+    from {
+        opacity: 0;
+        transform: translateY(14px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+</style>
+</head>
+
+<body>
+<main class="chat-page">
+    <header class="chat-header">
+        <a class="back-link" href="/" aria-label="Назад">‹</a>
+        <img class="header-avatar" src="{{ url_for('static', filename='img/avatarchat.jpg') }}" alt="">
+        <div class="chat-title">
+            <h1>ЧАТ CORLEONE</h1>
+            {% if session.get('user') %}
+                <p><span class="online-dot"></span>активен сейчас · @{{ session.get('user') }}</p>
+            {% else %}
+                <p><span class="online-dot"></span>активен сейчас · войдите, чтобы писать</p>
+            {% endif %}
+        </div>
+        {% if session.get('user') %}
+            <a class="profile-link" href="/logout">Выйти</a>
+        {% else %}
+            <a class="profile-link" href="/login">Войти</a>
+        {% endif %}
+    </header>
+
+    <section class="messages" id="messages">
+        {% if messages %}
+            {% for m in messages %}
+                {% if m.date_label %}
+                    <div class="date-separator">{{ m.date_label }}</div>
+                {% endif %}
+                <article class="message {% if session.get('user') == m.user %}mine{% endif %} {% if m.pinned %}pinned{% endif %}">
+                    <img class="message-avatar" src="{{ url_for('static', filename='img/' + m.avatar) }}" alt="">
+                    <div class="bubble">
+                        {% if m.pinned %}
+                            <div class="pinned-label">Закреплено</div>
+                        {% endif %}
+                        <div class="sender">
+                            {{ m.user }}
+                            {% if m.is_admin %}
+                                <span class="admin-badge">ADMIN</span>
+                            {% endif %}
+                        </div>
+                        {% if m.reply_to and m.reply_message %}
+                            <div class="reply-preview">
+                                <b>{{ m.reply_user }}</b>
+                                {{ m.reply_message }}
+                            </div>
+                        {% endif %}
+                        {% if m.message %}
+                            <div class="text">{{ m.message }}</div>
+                        {% endif %}
+                        {% if m.file and m.message_type == 'voice' %}
+                            <audio controls src="{{ url_for('static', filename='uploads/' + m.file) }}"></audio>
+                        {% elif m.file %}
+                            <a class="file-link" href="{{ url_for('static', filename='uploads/' + m.file) }}" download>
+                                📎 {{ m.file_name or 'Файл' }}
+                            </a>
+                        {% endif %}
+                        <div class="time">{{ m.time }}{% if m.edited_at %} · изменено {{ m.edited_at }}{% endif %}</div>
+                        {% if session.get('user') %}
+                            <div class="reaction-row">
+                                <form method="post" action="/chat/react/{{ m.id }}/like"><button type="submit">👍 {{ m.likes }}</button></form>
+                                <form method="post" action="/chat/react/{{ m.id }}/fire"><button type="submit">🔥 {{ m.fires }}</button></form>
+                                <form method="post" action="/chat/react/{{ m.id }}/heart"><button type="submit">❤️ {{ m.hearts }}</button></form>
+                            </div>
+                        {% endif %}
+                        {% if session.get('user') == m.user or session.get('admin') or session.get('user') %}
+                            <div class="message-actions">
+                                {% if session.get('user') %}
+                                    <button type="button" onclick="setReply({{ m.id }}, {{ m.user|tojson }}, {{ (m.message or 'файл')|tojson }})">Ответить</button>
+                                {% endif %}
+                                {% if session.get('user') == m.user and m.message %}
+                                    <button type="button" onclick="toggleEdit({{ m.id }})">Редактировать</button>
+                                {% endif %}
+                                {% if session.get('admin') %}
+                                    <form method="post" action="/chat/pin/{{ m.id }}">
+                                        <button type="submit">{% if m.pinned %}Открепить{% else %}Закрепить{% endif %}</button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        {% if session.get('user') == m.user and m.message %}
+                            <form class="edit-form" id="edit-{{ m.id }}" method="post" action="/chat/edit/{{ m.id }}">
+                                <input name="message" value="{{ m.message }}" required>
+                                <button type="submit">OK</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        {% else %}
+            <div class="empty">Пока нет сообщений. Будьте первым, кто напишет.</div>
+        {% endif %}
+    </section>
+
+    {% if session.get('user') %}
+        <form class="composer" id="composer" method="post" action="/send" enctype="multipart/form-data">
+            <div class="replying-to" id="replyBox">
+                <span id="replyText"></span>
+                <button type="button" onclick="clearReply()">×</button>
+            </div>
+            <div class="composer-row">
+                <label class="icon-btn" title="Прикрепить файл">
+                    📎
+                    <input class="hidden-file" id="attachment" type="file" name="attachment">
+                </label>
+                <textarea class="message-input" name="message" rows="1" placeholder="Сообщение..."></textarea>
+                <button class="icon-btn" id="recordBtn" type="button" title="Голосовое сообщение">🎙</button>
+                <button class="send-btn" type="submit" title="Отправить">➤</button>
+            </div>
+            <input type="hidden" id="replyTo" name="reply_to">
+            <input class="hidden-voice" id="voice" type="file" name="voice" accept="audio/*">
+            <div class="file-name" id="fileName"></div>
+        </form>
+    {% else %}
+        <div class="composer">
+            <div class="login-note">
+                <a href="/login">Войти</a>
+                <a href="/register">Регистрация</a>
+            </div>
+        </div>
+    {% endif %}
+</main>
+<button class="down-btn" id="downBtn" type="button" onclick="scrollChatDown()">↓</button>
+
+<script>
+const messages = document.getElementById("messages");
+if (messages) {
+    messages.scrollTop = messages.scrollHeight;
+}
+
+const downBtn = document.getElementById("downBtn");
+
+function scrollChatDown() {
+    if (!messages) return;
+    messages.scrollTo({ top: messages.scrollHeight, behavior: "smooth" });
+}
+
+if (messages && downBtn) {
+    messages.addEventListener("scroll", () => {
+        const distance = messages.scrollHeight - messages.scrollTop - messages.clientHeight;
+        downBtn.classList.toggle("visible", distance > 180);
+    });
+}
+
+function toggleEdit(id) {
+    const form = document.getElementById(`edit-${id}`);
+    if (!form) return;
+
+    form.classList.toggle("active");
+    const input = form.querySelector("input");
+    if (form.classList.contains("active") && input) {
+        input.focus();
+    }
+}
+
+function setReply(id, user, text) {
+    const replyTo = document.getElementById("replyTo");
+    const replyBox = document.getElementById("replyBox");
+    const replyText = document.getElementById("replyText");
+    if (!replyTo || !replyBox || !replyText) return;
+
+    replyTo.value = id;
+    replyText.textContent = `Ответ ${user}: ${text.slice(0, 64)}`;
+    replyBox.classList.add("active");
+
+    const input = document.querySelector(".message-input");
+    if (input) input.focus();
+}
+
+function clearReply() {
+    const replyTo = document.getElementById("replyTo");
+    const replyBox = document.getElementById("replyBox");
+    if (replyTo) replyTo.value = "";
+    if (replyBox) replyBox.classList.remove("active");
+}
+
+const textarea = document.querySelector(".message-input");
+if (textarea) {
+    textarea.addEventListener("input", () => {
+        textarea.style.height = "auto";
+        textarea.style.height = `${textarea.scrollHeight}px`;
+    });
+}
+
+const attachment = document.getElementById("attachment");
+const fileName = document.getElementById("fileName");
+if (attachment && fileName) {
+    attachment.addEventListener("change", () => {
+        fileName.textContent = attachment.files[0] ? `Файл: ${attachment.files[0].name}` : "";
+    });
+}
+
+const recordBtn = document.getElementById("recordBtn");
+const voiceInput = document.getElementById("voice");
+let recorder;
+let chunks = [];
+
+if (recordBtn && navigator.mediaDevices) {
+    recordBtn.addEventListener("click", async () => {
+        if (recorder && recorder.state === "recording") {
+            recorder.stop();
+            return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        recorder = new MediaRecorder(stream);
+        chunks = [];
+        recorder.ondataavailable = event => chunks.push(event.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: "audio/webm" });
+            const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            voiceInput.files = transfer.files;
+            recordBtn.classList.remove("recording");
+            recordBtn.textContent = "🎙";
+            fileName.textContent = "Голосовое готово к отправке";
+            stream.getTracks().forEach(track => track.stop());
+        };
+        recorder.start();
+        recordBtn.classList.add("recording");
+        recordBtn.textContent = "■";
+        fileName.textContent = "Идет запись...";
+    });
+}
+</script>
+</body>
+</html>

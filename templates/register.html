@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Регистрация</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #0a0a0a;
+    font-family: Inter;
+    color: white;
+}
+
+.box {
+    width: 360px;
+    background: #111;
+    padding: 35px;
+    border-radius: 18px;
+    box-shadow: 0 0 30px rgba(0, 234, 255, 0.12);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.gradient {
+    background: linear-gradient(90deg, #00eaff, #a855f7, #ff2bd6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    border: none;
+    background: #1a1a1a;
+    color: white;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #7c3aed, #ff2bd6);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    transform: scale(1.03);
+}
+
+.link {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 13px;
+    color: #aaa;
+}
+
+a {
+    color: #00eaff;
+    text-decoration: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Регистрация в <span class="gradient">CORLEONE</span></h2>
+
+    <form method="post">
+        <input name="username" placeholder="Логин" required>
+        <input name="password" type="password" placeholder="Пароль" required>
+
+        <button>Создать аккаунт</button>
+    </form>
+
+    <div class="link">
+        Уже есть аккаунт? <a href="/login">Войти</a>
+    </div>
+
+</div>
+
+</body>
+</html>

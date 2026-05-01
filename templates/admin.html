@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ-панель | Corleone</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #0a0a0a;
+    color: white;
+    font-family: Inter, sans-serif;
+}
+
+.page {
+    width: min(760px, 100%);
+    margin: 0 auto;
+    padding: 18px;
+}
+
+.top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.top a {
+    color: #ddd;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.panel {
+    padding: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    background: #111;
+    box-shadow: 0 18px 44px rgba(0,0,0,0.28);
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+label {
+    display: grid;
+    gap: 7px;
+    color: #aaa;
+    font-size: 12px;
+}
+
+input,
+select,
+textarea,
+button {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    font: inherit;
+}
+
+input,
+select,
+textarea {
+    padding: 12px;
+    background: #222;
+    color: white;
+    outline: none;
+}
+
+textarea {
+    min-height: 94px;
+    resize: vertical;
+}
+
+.wide {
+    grid-column: span 2;
+}
+
+button {
+    margin-top: 12px;
+    padding: 13px;
+    background: linear-gradient(90deg,#7c3aed,#ff2bd6);
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.cards {
+    display: grid;
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.item {
+    display: grid;
+    grid-template-columns: 84px 1fr;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    background: #111;
+}
+
+.item img {
+    width: 84px;
+    height: 84px;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.item h3 {
+    margin: 0 0 4px;
+    font-size: 16px;
+}
+
+.item p {
+    margin: 0 0 8px;
+    color: #aaa;
+    font-size: 13px;
+}
+
+.tag {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    background: rgba(124,58,237,0.22);
+    color: #ddd;
+    font-size: 11px;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.edit-link,
+.delete-btn {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 12px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.edit-link {
+    background: #262626;
+    color: white;
+}
+
+.delete-form {
+    flex: 1;
+}
+
+.delete-btn {
+    margin: 0;
+    background: #7f1d1d;
+}
+
+.empty {
+    margin-top: 18px;
+    color: #888;
+    text-align: center;
+}
+
+@media (max-width: 560px) {
+    .grid,
+    .item {
+        grid-template-columns: 1fr;
+    }
+
+    .wide {
+        grid-column: span 1;
+    }
+}
+</style>
+</head>
+<body>
+<main class="page">
+    <div class="top">
+        <h1>Админ-панель</h1>
+        <div>
+            <a href="/">Главная</a>
+            &nbsp;·&nbsp;
+            <a href="/admin/logout">Выйти</a>
+        </div>
+    </div>
+
+    <form class="panel" method="post" enctype="multipart/form-data">
+        <div class="grid">
+            <label>
+                Раздел
+                <select name="section">
+                    <option value="pmr_exchange">ПМР — Обменники</option>
+                    <option value="pmr_shop">ПМР — Магазины</option>
+                    <option value="md_exchange">Молдова — Обменники</option>
+                    <option value="md_shop">Магазины-Молдова</option>
+                    <option value="services">Разные услуги</option>
+                </select>
+            </label>
+            <label>
+                Фото
+                <input type="file" name="image" accept="image/*" required>
+            </label>
+            <label>
+                Имя карточки
+                <input name="title" placeholder="Например: New Service" required>
+            </label>
+            <label>
+                Ссылка
+                <input name="link" placeholder="https://t.me/..." required>
+            </label>
+            <label class="wide">
+                Описание
+                <textarea name="description" placeholder="Коротко опиши услугу" required></textarea>
+            </label>
+        </div>
+        <button>Добавить карточку</button>
+    </form>
+
+    {% if cards %}
+        <section class="cards">
+            {% for card in cards %}
+                <article class="item">
+                    <img src="{{ url_for('static', filename='img/' + card[4]) }}" alt="{{ card[2] }}">
+                    <div>
+                        <h3>{{ card[2] }}</h3>
+                        <p>{{ card[3] }}</p>
+                        <span class="tag">{{ card[1] }}</span>
+                        <div class="actions">
+                            <a class="edit-link" href="/admin/edit/{{ card[0] }}">Редактировать</a>
+                            <form class="delete-form" method="post" action="/admin/delete/{{ card[0] }}" onsubmit="return confirm('Удалить карточку {{ card[2] }}?')">
+                                <button class="delete-btn" type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </section>
+    {% else %}
+        <div class="empty">Пока нет добавленных через админку карточек.</div>
+    {% endif %}
+</main>
+</body>
+</html>

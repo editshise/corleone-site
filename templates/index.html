@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Corleone</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #0a0a0a;
+    color: white;
+}
+
+body.loaded .loader-screen {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.loader-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: grid;
+    place-items: center;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(0,234,255,0.18), transparent 32%),
+        radial-gradient(circle at 70% 75%, rgba(255,43,214,0.18), transparent 34%),
+        #070707;
+    transition: opacity 0.55s ease, visibility 0.55s ease;
+}
+
+.loader-core {
+    position: relative;
+    text-align: center;
+}
+
+.loader-core::before {
+    content: "";
+    position: absolute;
+    inset: -34px;
+    border-radius: 50%;
+    background: conic-gradient(from 0deg, #00eaff, #7c3aed, #ff2bd6, #00eaff);
+    filter: blur(22px);
+    opacity: 0.55;
+    animation: loaderGlow 2.2s linear infinite;
+}
+
+.loader-title {
+    position: relative;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: 0;
+    background: linear-gradient(90deg,#00eaff,#a855f7,#ff2bd6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.loader-line {
+    position: relative;
+    height: 3px;
+    width: 180px;
+    margin: 14px auto 0;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.12);
+    overflow: hidden;
+}
+
+.loader-line::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    border-radius: inherit;
+    background: linear-gradient(90deg,#00eaff,#ff2bd6);
+    animation: loaderLine 1.2s ease-in-out infinite;
+}
+
+.container {
+    padding: 15px;
+    max-width: 500px;
+    margin: auto;
+}
+
+h1 {
+    font-size: 26px;
+}
+
+.gradient {
+    background: linear-gradient(90deg,#00eaff,#a855f7,#ff2bd6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.desc {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.hero-banner {
+    position: relative;
+    margin: 18px auto 4px;
+    width: 100%;
+    max-width: 470px;
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 44px rgba(0,0,0,0.36), 0 0 28px rgba(124,58,237,0.16);
+}
+
+.hero-banner-wrap {
+    position: relative;
+    max-width: 470px;
+    margin: 18px auto 4px;
+}
+
+.hero-banner-wrap::before {
+    content: "";
+    position: absolute;
+    inset: -18px -14px;
+    z-index: -1;
+    border-radius: 28px;
+    background:
+        radial-gradient(circle at 20% 45%, rgba(0,234,255,0.34), transparent 34%),
+        radial-gradient(circle at 75% 30%, rgba(255,43,214,0.34), transparent 36%),
+        radial-gradient(circle at 50% 90%, rgba(124,58,237,0.40), transparent 42%);
+    filter: blur(18px);
+    opacity: 0.78;
+    animation: livingShadow 6s ease-in-out infinite alternate;
+}
+
+.hero-banner-wrap::after {
+    content: "";
+    position: absolute;
+    inset: 8px 16px -18px;
+    z-index: -2;
+    border-radius: 30px;
+    background: rgba(0,0,0,0.72);
+    filter: blur(22px);
+    animation: deepShadow 5s ease-in-out infinite alternate;
+}
+
+.hero-banner::before,
+.hero-banner::after {
+    content: "";
+    position: absolute;
+    inset: -35%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle, rgba(255,255,255,0.75) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(0,234,255,0.55) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(255,43,214,0.45) 0 1px, transparent 2px);
+    background-size: 54px 54px, 86px 86px, 118px 118px;
+    opacity: 0.35;
+    animation: dustFly 16s linear infinite;
+}
+
+.hero-banner::after {
+    opacity: 0.22;
+    filter: blur(1px);
+    animation-duration: 24s;
+    animation-direction: reverse;
+}
+
+.hero-banner img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 7;
+    object-fit: cover;
+}
+
+.site-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 16px 0 4px;
+}
+
+.stat-pill {
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+    box-shadow: 0 12px 26px rgba(0,0,0,0.22);
+}
+
+.stat-label {
+    color: #aaa;
+    font-size: 11px;
+}
+
+.stat-value {
+    margin-top: 4px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+@keyframes dustFly {
+    0% {
+        transform: translate3d(-4%, 7%, 0) rotate(0deg);
+    }
+    50% {
+        transform: translate3d(5%, -3%, 0) rotate(8deg);
+    }
+    100% {
+        transform: translate3d(12%, -10%, 0) rotate(14deg);
+    }
+}
+
+@keyframes livingShadow {
+    0% {
+        transform: translate3d(-3px, 4px, 0) scale(0.98);
+        opacity: 0.62;
+    }
+    50% {
+        transform: translate3d(5px, -2px, 0) scale(1.04);
+        opacity: 0.9;
+    }
+    100% {
+        transform: translate3d(-1px, 5px, 0) scale(1.08);
+        opacity: 0.72;
+    }
+}
+
+@keyframes deepShadow {
+    0% {
+        transform: translateY(2px) scale(0.96);
+        opacity: 0.55;
+    }
+    100% {
+        transform: translateY(8px) scale(1.04);
+        opacity: 0.8;
+    }
+}
+
+@keyframes loaderGlow {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loaderLine {
+    0% {
+        transform: translateX(-110%);
+    }
+    100% {
+        transform: translateX(240%);
+    }
+}
+
+@keyframes cardTap {
+    0% {
+        transform: translateY(0) scale(1);
+        filter: brightness(1);
+    }
+    45% {
+        transform: translateY(-4px) scale(1.025);
+        filter: brightness(1.18);
+    }
+    100% {
+        transform: translateY(0) scale(0.985);
+        filter: brightness(1.05);
+    }
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 12px 10px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 18px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 14px;
+    background: linear-gradient(135deg,#242424,#151515);
+    color: white;
+    text-decoration: none;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.24);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.18), transparent);
+    transform: translateX(-120%);
+    transition: transform 0.55s ease;
+}
+
+.btn:hover,
+.btn.active {
+    border-color: rgba(255,43,214,0.55);
+    background: linear-gradient(135deg,#7c3aed,#ff2bd6);
+    box-shadow: 0 14px 30px rgba(255,43,214,0.20);
+    transform: translateY(-2px);
+}
+
+.btn:hover::after,
+.btn.pressed::after {
+    transform: translateX(120%);
+}
+
+.btn:active,
+.btn.pressed {
+    transform: scale(0.94);
+}
+
+.btn.chat-btn-main {
+    grid-column: span 2;
+    background: linear-gradient(135deg,#00a3ff,#7c3aed,#ff2bd6);
+}
+
+.section {
+    margin-top: 40px;
+    scroll-margin-top: 22px;
+}
+
+.section h2 {
+    font-size: 20px;
+}
+
+.card {
+    background: #111;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 15px;
+    padding: 12px;
+    margin-bottom: 12px;
+    opacity: 0;
+    transform: translateY(28px) scale(0.98);
+    transition: opacity 0.55s ease, transform 0.55s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.card:hover {
+    border-color: rgba(0,234,255,0.28);
+    box-shadow: 0 18px 38px rgba(0,0,0,0.28);
+    transform: translateY(-3px) scale(1);
+}
+
+.card.opening {
+    border-color: rgba(255,43,214,0.72);
+    box-shadow: 0 0 0 1px rgba(255,43,214,0.22), 0 18px 42px rgba(255,43,214,0.18);
+    animation: cardTap 0.32s ease both;
+}
+
+.card img {
+    width: 100%;
+    border-radius: 10px;
+    display: block;
+}
+
+.card h3 {
+    margin: 8px 0 2px;
+}
+
+.card p {
+    color: #bbb;
+    font-size: 13px;
+}
+
+.card a {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    padding: 10px;
+    border-radius: 15px;
+    background: linear-gradient(90deg,#7c3aed,#ff2bd6);
+    color: white;
+    text-decoration: none;
+    font-weight: 700;
+    transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.card a:active {
+    transform: scale(0.94);
+    filter: brightness(1.2);
+}
+
+.empty-section {
+    padding: 18px;
+    border: 1px dashed rgba(255,255,255,0.14);
+    border-radius: 16px;
+    background: rgba(255,255,255,0.035);
+    color: #aaa;
+    text-align: center;
+    font-size: 14px;
+}
+
+.menu-btn {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    background: #fff;
+    color: black;
+    padding: 10px 12px;
+    border-radius: 10px;
+    z-index: 999;
+    cursor: pointer;
+}
+
+.menu {
+    position: fixed;
+    top: 60px;
+    right: 15px;
+    background: #111;
+    border-radius: 12px;
+    display: none;
+    padding: 10px;
+    z-index: 998;
+    min-width: 190px;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 18px 42px rgba(0,0,0,0.38);
+}
+
+.menu div,
+.menu a {
+    display: block;
+    padding: 10px;
+    border-bottom: 1px solid #222;
+    cursor: pointer;
+    color: white;
+    text-decoration: none;
+    border-radius: 9px;
+    transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.menu div:hover,
+.menu a:hover {
+    background: linear-gradient(90deg,#7c3aed,#ff2bd6);
+}
+
+.menu div:active,
+.menu a:active {
+    transform: scale(0.96);
+}
+
+.menu div:last-child,
+.menu a:last-child {
+    border-bottom: none;
+}
+
+@media (min-width: 460px) {
+}
+</style>
+</head>
+
+<body>
+
+<div class="loader-screen">
+    <div class="loader-core">
+        <div class="loader-title">CORLEONE</div>
+        <div class="loader-line"></div>
+    </div>
+</div>
+
+<audio id="siteMusic" src="{{ url_for('static', filename='audio/incognito.mp3') }}" preload="auto" loop></audio>
+
+<div class="menu-btn" onclick="toggleMenu()">☰</div>
+
+<div class="menu" id="menu">
+    <a href="/chat">ЧАТ</a>
+    <a href="https://t.me/doncrlncontact" target="_blank" rel="noopener">Контакты</a>
+    <a href="https://t.me/doncrln" target="_blank" rel="noopener">Поддержка</a>
+    <a href="https://t.me/+aVItOKgZPVA3YjA6" target="_blank" rel="noopener">Общий чат</a>
+    <a href="https://t.me/+boN_YHVolqtiZTIy" target="_blank" rel="noopener">Отзывы</a>
+    <a href="/admin">Админ-панель</a>
+{% if session.get('user') %}
+    <div>Профиль: {{ session.get('user') }}</div>
+    <div onclick="location.href='/logout'">Выйти</div>
+{% else %}
+    <div onclick="location.href='/login'">Вход</div>
+    <div onclick="location.href='/register'">Регистрация</div>
+{% endif %}
+</div>
+
+<div class="container">
+
+<h1>HOME <span class="gradient">CORLEONE</span></h1>
+
+<p class="desc">Все сервисы и обменники в одном месте</p>
+
+<div class="hero-banner-wrap">
+    <div class="hero-banner">
+        <img src="{{ url_for('static', filename='img/banner.jpg') }}" alt="Corleone banner">
+    </div>
+</div>
+
+<div class="site-stats">
+    <div class="stat-pill">
+        <div class="stat-label">Зарегистрировано</div>
+        <div class="stat-value">{{ registered_count }}</div>
+    </div>
+    <div class="stat-pill">
+        <div class="stat-label">Сервисов на сайте</div>
+        <div class="stat-value">{{ service_count }}</div>
+    </div>
+</div>
+
+<div class="buttons">
+    <button class="btn nav-btn active" type="button" data-target="pmr" onclick="scrollToBlock('pmr', this)">ПМР</button>
+    <button class="btn nav-btn" type="button" data-target="md" onclick="scrollToBlock('md', this)">Молдова</button>
+</div>
+
+<div id="pmr" class="section">
+
+<h2>ПМР — Обменники</h2>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/cryptonyx.jpg') }}" alt="CryptonyX">
+    <h3>CryptonyX</h3>
+    <p>Рубли / Леи</p>
+    <a href="https://t.me/cryptonyxor">Перейти</a>
+</div>
+
+{% for card in cards_by_section.get('pmr_exchange', []) %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/' + card.image) }}" alt="{{ card.title }}">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+<h2>ПМР — Магазины</h2>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/sinaloa.jpg') }}" alt="SINALOA">
+    <h3>SINALOA</h3>
+    <p>MD / PMR</p>
+    <a href="https://t.me/SINALOAPMR">Перейти</a>
+</div>
+
+{% for card in cards_by_section.get('pmr_shop', []) %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/' + card.image) }}" alt="{{ card.title }}">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+</div>
+
+<div id="md" class="section">
+
+<h2>Молдова — Обменники</h2>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/kryptomah.jpg') }}" alt="KryptoMah">
+    <h3>KryptoMah</h3>
+    <p>Топ курс</p>
+    <a href="#">Перейти</a>
+</div>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/ghost.jpg') }}" alt="GhostCrypto">
+    <h3>GhostCrypto</h3>
+    <p>Терминалы</p>
+    <a href="#">Перейти</a>
+</div>
+
+{% for card in cards_by_section.get('md_exchange', []) %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/' + card.image) }}" alt="{{ card.title }}">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+<h2>Магазины-Молдова</h2>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/sinaloa.jpg') }}" alt="SINALOA">
+    <h3>SINALOA</h3>
+    <p>Молдова</p>
+    <a href="https://t.me/SINALOAPMR">Перейти</a>
+</div>
+
+{% for card in cards_by_section.get('md_shop', []) %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/' + card.image) }}" alt="{{ card.title }}">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+</div>
+
+<div id="services" class="section">
+
+<h2>Разные услуги</h2>
+
+<div class="card">
+    <img src="{{ url_for('static', filename='img/redq.png') }}" alt="Red Queen">
+    <h3>Red Queen</h3>
+    <p>Продажа/Покупка банковских карт и кошельков (ПМР/МД)</p>
+    <a href="https://t.me/umbrella01">Перейти</a>
+</div>
+
+{% for card in cards_by_section.get('services', []) %}
+<div class="card">
+    <img src="{{ url_for('static', filename='img/' + card.image) }}" alt="{{ card.title }}">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+</div>
+
+</div>
+
+<script>
+function toggleMenu(){
+    let m = document.getElementById("menu");
+    m.style.display = m.style.display === "block" ? "none" : "block";
+}
+
+window.addEventListener("load", () => {
+    window.setTimeout(() => document.body.classList.add("loaded"), 750);
+});
+
+function setActiveButton(button){
+    document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+    if (button) {
+        button.classList.add("active");
+    }
+}
+
+function scrollToBlock(id, button){
+    pulseButton(button);
+    setActiveButton(button);
+    document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+function pulseButton(button){
+    if (!button) return;
+    button.classList.add("pressed");
+    window.setTimeout(() => button.classList.remove("pressed"), 220);
+}
+
+document.querySelectorAll(".btn").forEach(button => {
+    button.addEventListener("click", () => pulseButton(button));
+});
+
+const sectionObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const active = document.querySelector(`.nav-btn[data-target="${entry.target.id}"]`);
+        setActiveButton(active);
+    });
+}, {
+    rootMargin: "-35% 0px -45% 0px",
+    threshold: 0
+});
+
+document.querySelectorAll(".section").forEach(section => sectionObserver.observe(section));
+
+const cardObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            cardObserver.unobserve(entry.target);
+        }
+    });
+}, {
+    threshold: 0.16
+});
+
+document.querySelectorAll(".card").forEach(card => cardObserver.observe(card));
+
+document.querySelectorAll(".card a").forEach(link => {
+    link.addEventListener("click", event => {
+        const href = link.getAttribute("href");
+        if (!href || href === "#") return;
+
+        event.preventDefault();
+        const card = link.closest(".card");
+        if (card) {
+            card.classList.add("opening");
+        }
+
+        window.setTimeout(() => {
+            window.location.href = href;
+        }, 240);
+    });
+});
+
+const siteMusic = document.getElementById("siteMusic");
+let musicStarted = false;
+
+function startSiteMusic(){
+    if (!siteMusic || musicStarted) return;
+
+    siteMusic.volume = 0.45;
+    siteMusic.play()
+        .then(() => {
+            musicStarted = true;
+        })
+        .catch(() => {
+            musicStarted = false;
+        });
+}
+
+window.addEventListener("load", startSiteMusic);
+document.addEventListener("click", startSiteMusic, { once: true });
+document.addEventListener("touchstart", startSiteMusic, { once: true });
+</script>
+
+</body>
+</html>
