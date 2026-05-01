@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+import json
 
 from flask import Flask, redirect, render_template, request, session
 from werkzeug.utils import secure_filename
@@ -7,9 +8,12 @@ from werkzeug.utils import secure_filename
 import firebase_admin
 from firebase_admin import credentials, firestore
 
-# 🔑 Firebase
-cred = credentials.Certificate("firebase_key.json")
+# 🔥 Firebase через ENV (Render)
+firebase_key = json.loads(os.environ.get("FIREBASE_KEY"))
+
+cred = credentials.Certificate(firebase_key)
 firebase_admin.initialize_app(cred)
+
 db_firestore = firestore.client()
 
 app = Flask(__name__)
@@ -31,25 +35,23 @@ def save_uploaded_file(file, folder, prefix):
         return None
 
     filename = secure_filename(file.filename)
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    filename = f"{prefix}_{timestamp}_{filename}"
-
+    filename = f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
     file.save(os.path.join(folder, filename))
     return filename
 
 
-# =========================
-# 🔥 ГЛАВНАЯ (КАРТОЧКИ)
-# =========================
+# =======================
+# ГЛАВНАЯ
+# =======================
 @app.route("/")
 def home():
-    cards_ref = db_firestore.collection("cards") \
+    cards = db_firestore.collection("cards") \
         .order_by("created_at", direction=firestore.Query.DESCENDING) \
         .stream()
 
     cards_by_section = {}
 
-    for doc in cards_ref:
+    for doc in cards:
         data = doc.to_dict()
         section = data.get("section")
 
@@ -60,24 +62,19 @@ def home():
             "link": data.get("link"),
         })
 
-    return render_template(
-        "index.html",
-        registered_count=150,
-        service_count=5,
-        cards_by_section=cards_by_section,
-    )
+    return render_template("index.html", cards_by_section=cards_by_section)
 
 
-# =========================
-# 🔐 АДМИНКА КАРТОЧЕК
-# =========================
+# =======================
+# АДМИНКА
+# =======================
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if not session.get("admin"):
         return redirect("/admin/login")
 
     if request.method == "POST":
-        section = request.form.get("section", "services")
+        section = request.form.get("section")
         title = request.form.get("title")
         description = request.form.get("description")
         link = request.form.get("link")
@@ -97,9 +94,7 @@ def admin():
 
         return redirect("/admin")
 
-    cards = db_firestore.collection("cards") \
-        .order_by("created_at", direction=firestore.Query.DESCENDING) \
-        .stream()
+    cards = db_firestore.collection("cards").stream()
 
     cards_list = []
     for doc in cards:
@@ -112,9 +107,6 @@ def admin():
 
 @app.route("/admin/delete/<card_id>", methods=["POST"])
 def delete(card_id):
-    if not session.get("admin"):
-        return redirect("/admin/login")
-
     db_firestore.collection("cards").document(card_id).delete()
     return redirect("/admin")
 
@@ -129,44 +121,24 @@ def admin_login():
     return render_template("admin_login.html")
 
 
-@app.route("/admin/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
-# =========================
-# 💬 ЧАТ (Firebase)
-# =========================
+# =======================
+# ЧАТ
+# =======================
 @app.route("/chat")
 def chat():
-    messages_ref = db_firestore.collection("messages") \
+    messages = db_firestore.collection("messages") \
         .order_by("created_at") \
         .limit(100) \
         .stream()
 
-    messages = []
+    result = []
 
-    for doc in messages_ref:
+    for doc in messages:
         data = doc.to_dict()
+        data["id"] = doc.id
+        result.append(data)
 
-        messages.append({
-            "id": doc.id,
-            "user": data.get("user"),
-            "message": data.get("message"),
-            "time": data.get("time"),
-            "avatar": data.get("avatar", "default.jpg"),
-            "file": data.get("file"),
-            "file_name": data.get("file_name"),
-            "message_type": data.get("message_type", "text"),
-            "likes": data.get("likes", 0),
-            "fires": data.get("fires", 0),
-            "hearts": data.get("hearts", 0),
-        })
-
-    avatar = "default.jpg"
-
-    return render_template("chat.html", messages=messages, avatar=avatar)
+    return render_template("chat.html", messages=result, avatar="default.jpg")
 
 
 @app.route("/send", methods=["POST"])
@@ -174,57 +146,24 @@ def send():
     if "user" not in session:
         return redirect("/login")
 
-    message = request.form.get("message", "").strip()
+    message = request.form.get("message")
     user = session["user"]
 
-    if not message:
-        return redirect("/chat")
-
-    db_firestore.collection("messages").add({
-        "user": user,
-        "message": message,
-        "time": datetime.now().strftime("%H:%M"),
-        "created_at": datetime.now(),
-        "likes": 0,
-        "fires": 0,
-        "hearts": 0
-    })
+    if message:
+        db_firestore.collection("messages").add({
+            "user": user,
+            "message": message,
+            "time": datetime.now().strftime("%H:%M"),
+            "created_at": datetime.now(),
+            "likes": 0
+        })
 
     return redirect("/chat")
 
 
-@app.route("/chat/react/<message_id>/<reaction>", methods=["POST"])
-def react_message(message_id, reaction):
-    if "user" not in session:
-        return redirect("/login")
-
-    doc_ref = db_firestore.collection("messages").document(message_id)
-
-    field = {
-        "like": "likes",
-        "fire": "fires",
-        "heart": "hearts"
-    }.get(reaction)
-
-    if field:
-        doc = doc_ref.get()
-        current = doc.to_dict().get(field, 0)
-        doc_ref.update({field: current + 1})
-
-    return redirect("/chat")
-
-
-# =========================
-# 👤 ПРОСТАЯ АВТОРИЗАЦИЯ (пока локально)
-# =========================
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    if request.method == "POST":
-        session["user"] = request.form["username"]
-        return redirect("/")
-    return render_template("register.html")
-
-
+# =======================
+# ЛОГИН
+# =======================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -233,11 +172,11 @@ def login():
     return render_template("login.html")
 
 
-@app.route("/logout_user")
-def logout_user():
+@app.route("/logout")
+def logout():
     session.clear()
     return redirect("/")
-    
+
 
 if __name__ == "__main__":
     app.run(debug=True)
