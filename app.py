@@ -1,117 +1,76 @@
 from datetime import datetime, timedelta
 import os
-import sqlite3
 
 from flask import Flask, redirect, render_template, request, session
 from werkzeug.utils import secure_filename
 
+import firebase_admin
+from firebase_admin import credentials, firestore
+
+# 🔑 Firebase
+cred = credentials.Certificate("firebase_key.json")
+firebase_admin.initialize_app(cred)
+db_firestore = firestore.client()
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 app.permanent_session_lifetime = timedelta(days=30)
+
 ADMIN_PASSWORD = "148corleone"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "database.db")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
 
-
-def db():
-    return sqlite3.connect(DB_PATH)
-
-
-def ensure_column(cursor, table, column, definition):
-    cursor.execute(f"PRAGMA table_info({table})")
-    columns = [row[1] for row in cursor.fetchall()]
-
-    if column not in columns:
-        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
-
-
-def init_storage():
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-    os.makedirs(AVATAR_FOLDER, exist_ok=True)
-
-    conn = db()
-    c = conn.cursor()
-    ensure_column(c, "chat", "file", "TEXT")
-    ensure_column(c, "chat", "file_name", "TEXT")
-    ensure_column(c, "chat", "message_type", "TEXT DEFAULT 'text'")
-    ensure_column(c, "chat", "pinned", "INTEGER DEFAULT 0")
-    ensure_column(c, "chat", "edited_at", "TEXT")
-    ensure_column(c, "chat", "created_at", "TEXT")
-    ensure_column(c, "chat", "reply_to", "INTEGER")
-    ensure_column(c, "chat", "likes", "INTEGER DEFAULT 0")
-    ensure_column(c, "chat", "fires", "INTEGER DEFAULT 0")
-    ensure_column(c, "chat", "hearts", "INTEGER DEFAULT 0")
-    c.execute("UPDATE users SET avatar='default.jpg' WHERE avatar IS NULL OR avatar='default.png'")
-    c.execute(
-        """
-        CREATE TABLE IF NOT EXISTS cards (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            section TEXT NOT NULL,
-            title TEXT NOT NULL,
-            description TEXT NOT NULL,
-            image TEXT NOT NULL,
-            link TEXT NOT NULL,
-            created_at TEXT
-        )
-        """
-    )
-    conn.commit()
-    conn.close()
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(AVATAR_FOLDER, exist_ok=True)
 
 
 def save_uploaded_file(file, folder, prefix):
     if not file or not file.filename:
-        return None, None
+        return None
 
-    original_name = secure_filename(file.filename)
-    if not original_name:
-        return None, None
-
+    filename = secure_filename(file.filename)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    filename = f"{prefix}_{timestamp}_{original_name}"
+    filename = f"{prefix}_{timestamp}_{filename}"
+
     file.save(os.path.join(folder, filename))
-
-    return filename, original_name
-
-
-init_storage()
+    return filename
 
 
+# =========================
+# 🔥 ГЛАВНАЯ (КАРТОЧКИ)
+# =========================
 @app.route("/")
 def home():
-    conn = db()
-    c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM users")
-    registered_count = 148 + c.fetchone()[0]
-    c.execute("SELECT section, title, description, image, link FROM cards ORDER BY id DESC")
-    dynamic_cards = c.fetchall()
-    conn.close()
+    cards_ref = db_firestore.collection("cards") \
+        .order_by("created_at", direction=firestore.Query.DESCENDING) \
+        .stream()
 
     cards_by_section = {}
-    for section, title, description, image, link in dynamic_cards:
-        cards_by_section.setdefault(section, []).append(
-            {
-                "title": title,
-                "description": description,
-                "image": image,
-                "link": link,
-            }
-        )
 
-    service_count = 5 + len(dynamic_cards)
+    for doc in cards_ref:
+        data = doc.to_dict()
+        section = data.get("section")
+
+        cards_by_section.setdefault(section, []).append({
+            "title": data.get("title"),
+            "description": data.get("description"),
+            "image": data.get("image"),
+            "link": data.get("link"),
+        })
 
     return render_template(
         "index.html",
-        registered_count=registered_count,
-        service_count=service_count,
+        registered_count=150,
+        service_count=5,
         cards_by_section=cards_by_section,
     )
 
 
+# =========================
+# 🔐 АДМИНКА КАРТОЧЕК
+# =========================
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if not session.get("admin"):
@@ -119,188 +78,93 @@ def admin():
 
     if request.method == "POST":
         section = request.form.get("section", "services")
-        title = request.form.get("title", "").strip()
-        description = request.form.get("description", "").strip()
-        link = request.form.get("link", "").strip()
+        title = request.form.get("title")
+        description = request.form.get("description")
+        link = request.form.get("link")
         image_file = request.files.get("image")
-        image, _ = save_uploaded_file(image_file, AVATAR_FOLDER, "card")
+
+        image = save_uploaded_file(image_file, AVATAR_FOLDER, "card")
 
         if title and description and link and image:
-            conn = db()
-            c = conn.cursor()
-            c.execute(
-                """
-                INSERT INTO cards (section, title, description, image, link, created_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (
-                    section,
-                    title,
-                    description,
-                    image,
-                    link,
-                    datetime.now().strftime("%d-%m-%Y %H:%M"),
-                ),
-            )
-            conn.commit()
-            conn.close()
+            db_firestore.collection("cards").add({
+                "section": section,
+                "title": title,
+                "description": description,
+                "image": image,
+                "link": link,
+                "created_at": datetime.now()
+            })
 
         return redirect("/admin")
 
-    conn = db()
-    c = conn.cursor()
-    c.execute("SELECT id, section, title, description, image, link FROM cards ORDER BY id DESC")
-    cards = c.fetchall()
-    conn.close()
+    cards = db_firestore.collection("cards") \
+        .order_by("created_at", direction=firestore.Query.DESCENDING) \
+        .stream()
 
-    return render_template("admin.html", cards=cards)
+    cards_list = []
+    for doc in cards:
+        data = doc.to_dict()
+        data["id"] = doc.id
+        cards_list.append(data)
+
+    return render_template("admin.html", cards=cards_list)
 
 
-@app.route("/admin/edit/<int:card_id>", methods=["GET", "POST"])
-def admin_edit(card_id):
+@app.route("/admin/delete/<card_id>", methods=["POST"])
+def delete(card_id):
     if not session.get("admin"):
         return redirect("/admin/login")
 
-    conn = db()
-    c = conn.cursor()
-
-    if request.method == "POST":
-        section = request.form.get("section", "services")
-        title = request.form.get("title", "").strip()
-        description = request.form.get("description", "").strip()
-        link = request.form.get("link", "").strip()
-        image_file = request.files.get("image")
-        image, _ = save_uploaded_file(image_file, AVATAR_FOLDER, "card")
-
-        if title and description and link:
-            if image:
-                c.execute(
-                    """
-                    UPDATE cards
-                    SET section=?, title=?, description=?, link=?, image=?
-                    WHERE id=?
-                    """,
-                    (section, title, description, link, image, card_id),
-                )
-            else:
-                c.execute(
-                    """
-                    UPDATE cards
-                    SET section=?, title=?, description=?, link=?
-                    WHERE id=?
-                    """,
-                    (section, title, description, link, card_id),
-                )
-            conn.commit()
-            conn.close()
-            return redirect("/admin")
-
-    c.execute("SELECT id, section, title, description, image, link FROM cards WHERE id=?", (card_id,))
-    card = c.fetchone()
-    conn.close()
-
-    if not card:
-        return redirect("/admin")
-
-    return render_template("admin_edit.html", card=card)
-
-
-@app.route("/admin/delete/<int:card_id>", methods=["POST"])
-def admin_delete(card_id):
-    if not session.get("admin"):
-        return redirect("/admin/login")
-
-    conn = db()
-    c = conn.cursor()
-    c.execute("DELETE FROM cards WHERE id=?", (card_id,))
-    conn.commit()
-    conn.close()
-
+    db_firestore.collection("cards").document(card_id).delete()
     return redirect("/admin")
 
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
-    error = None
     if request.method == "POST":
         if request.form.get("password") == ADMIN_PASSWORD:
-            session.permanent = True
             session["admin"] = True
             return redirect("/admin")
-        error = "Неверный пароль"
 
-    return render_template("admin_login.html", error=error)
+    return render_template("admin_login.html")
 
 
 @app.route("/admin/logout")
-def admin_logout():
-    session.pop("admin", None)
+def logout():
+    session.clear()
     return redirect("/")
 
 
+# =========================
+# 💬 ЧАТ (Firebase)
+# =========================
 @app.route("/chat")
 def chat():
-    conn = db()
-    c = conn.cursor()
-    c.execute(
-        """
-        SELECT chat.id, chat.user, chat.message, chat.time, users.avatar,
-               chat.file, chat.file_name, chat.message_type, chat.pinned, chat.edited_at,
-               chat.created_at, chat.reply_to, chat.likes, chat.fires, chat.hearts,
-               users.role, parent.user, parent.message
-        FROM chat
-        LEFT JOIN users ON chat.user = users.username
-        LEFT JOIN chat AS parent ON chat.reply_to = parent.id
-        ORDER BY chat.pinned DESC, chat.id ASC
-        LIMIT 100
-        """
-    )
-    rows = c.fetchall()
-
-    avatar = "default.jpg"
-    if "user" in session:
-        c.execute("SELECT avatar FROM users WHERE username=?", (session["user"],))
-        result = c.fetchone()
-        if result and result[0]:
-            avatar = result[0]
-
-    conn.close()
+    messages_ref = db_firestore.collection("messages") \
+        .order_by("created_at") \
+        .limit(100) \
+        .stream()
 
     messages = []
-    last_date = None
-    for row in rows:
-        created_at = row[10] or datetime.now().strftime("%Y-%m-%d %H:%M")
-        date_part = created_at.split(" ")[0]
-        date_label = None
-        if date_part != last_date:
-            today = datetime.now().strftime("%Y-%m-%d")
-            date_label = "Сегодня" if date_part == today else date_part
-            last_date = date_part
 
-        role = row[15] or ""
-        is_admin = role == "Админ" or row[1].lower() in ("admin", "corleone", "don7")
-        messages.append(
-            {
-                "id": row[0],
-                "user": row[1],
-                "message": row[2],
-                "time": row[3],
-                "avatar": row[4] or "default.jpg",
-                "file": row[5],
-                "file_name": row[6],
-                "message_type": row[7],
-                "pinned": row[8],
-                "edited_at": row[9],
-                "date_label": date_label,
-                "reply_to": row[11],
-                "likes": row[12] or 0,
-                "fires": row[13] or 0,
-                "hearts": row[14] or 0,
-                "is_admin": is_admin,
-                "reply_user": row[16],
-                "reply_message": row[17],
-            }
-        )
+    for doc in messages_ref:
+        data = doc.to_dict()
+
+        messages.append({
+            "id": doc.id,
+            "user": data.get("user"),
+            "message": data.get("message"),
+            "time": data.get("time"),
+            "avatar": data.get("avatar", "default.jpg"),
+            "file": data.get("file"),
+            "file_name": data.get("file_name"),
+            "message_type": data.get("message_type", "text"),
+            "likes": data.get("likes", 0),
+            "fires": data.get("fires", 0),
+            "hearts": data.get("hearts", 0),
+        })
+
+    avatar = "default.jpg"
 
     return render_template("chat.html", messages=messages, avatar=avatar)
 
@@ -311,184 +175,69 @@ def send():
         return redirect("/login")
 
     message = request.form.get("message", "").strip()
-    voice = request.files.get("voice")
-    attachment = request.files.get("attachment")
-    reply_to = request.form.get("reply_to") or None
     user = session["user"]
 
-    file_name = None
-    original_name = None
-    message_type = "text"
-
-    if voice and voice.filename:
-        file_name, original_name = save_uploaded_file(voice, UPLOAD_FOLDER, user)
-        message_type = "voice"
-        original_name = original_name or "voice-message.webm"
-    elif attachment and attachment.filename:
-        file_name, original_name = save_uploaded_file(attachment, UPLOAD_FOLDER, user)
-        message_type = "file"
-
-    if not message and not file_name:
+    if not message:
         return redirect("/chat")
 
-    conn = db()
-    c = conn.cursor()
-    c.execute(
-        """
-        INSERT INTO chat (user, message, time, file, file_name, message_type, created_at, reply_to)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            user,
-            message,
-            datetime.now().strftime("%H:%M"),
-            file_name,
-            original_name,
-            message_type,
-            datetime.now().strftime("%Y-%m-%d %H:%M"),
-            reply_to,
-        ),
-    )
-    conn.commit()
-    conn.close()
+    db_firestore.collection("messages").add({
+        "user": user,
+        "message": message,
+        "time": datetime.now().strftime("%H:%M"),
+        "created_at": datetime.now(),
+        "likes": 0,
+        "fires": 0,
+        "hearts": 0
+    })
 
     return redirect("/chat")
 
 
-@app.route("/chat/react/<int:message_id>/<reaction>", methods=["POST"])
+@app.route("/chat/react/<message_id>/<reaction>", methods=["POST"])
 def react_message(message_id, reaction):
     if "user" not in session:
         return redirect("/login")
 
-    columns = {
+    doc_ref = db_firestore.collection("messages").document(message_id)
+
+    field = {
         "like": "likes",
         "fire": "fires",
-        "heart": "hearts",
-    }
-    column = columns.get(reaction)
-    if not column:
-        return redirect("/chat")
+        "heart": "hearts"
+    }.get(reaction)
 
-    conn = db()
-    c = conn.cursor()
-    c.execute(f"UPDATE chat SET {column} = COALESCE({column}, 0) + 1 WHERE id=?", (message_id,))
-    conn.commit()
-    conn.close()
+    if field:
+        doc = doc_ref.get()
+        current = doc.to_dict().get(field, 0)
+        doc_ref.update({field: current + 1})
 
     return redirect("/chat")
 
 
-@app.route("/chat/edit/<int:message_id>", methods=["POST"])
-def edit_message(message_id):
-    if "user" not in session:
-        return redirect("/login")
-
-    message = request.form.get("message", "").strip()
-    if not message:
-        return redirect("/chat")
-
-    conn = db()
-    c = conn.cursor()
-    c.execute(
-        """
-        UPDATE chat
-        SET message=?, edited_at=?
-        WHERE id=? AND user=?
-        """,
-        (message, datetime.now().strftime("%H:%M"), message_id, session["user"]),
-    )
-    conn.commit()
-    conn.close()
-
-    return redirect("/chat")
-
-
-@app.route("/chat/pin/<int:message_id>", methods=["POST"])
-def pin_message(message_id):
-    if not session.get("admin"):
-        return redirect("/admin/login")
-
-    conn = db()
-    c = conn.cursor()
-    c.execute("SELECT pinned FROM chat WHERE id=?", (message_id,))
-    result = c.fetchone()
-
-    if result:
-        next_state = 0 if result[0] else 1
-        c.execute("UPDATE chat SET pinned=? WHERE id=?", (next_state, message_id))
-        conn.commit()
-
-    conn.close()
-
-    return redirect("/chat")
-
-
+# =========================
+# 👤 ПРОСТАЯ АВТОРИЗАЦИЯ (пока локально)
+# =========================
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        user = request.form["username"]
-        password = request.form["password"]
-
-        conn = db()
-        c = conn.cursor()
-        c.execute(
-            "INSERT INTO users (username, password, avatar, created_at) VALUES (?, ?, ?, ?)",
-            (user, password, "default.jpg", datetime.now().strftime("%d-%m-%Y %H:%M")),
-        )
-        conn.commit()
-        conn.close()
-
-        session.permanent = True
-        session["user"] = user
+        session["user"] = request.form["username"]
         return redirect("/")
-
     return render_template("register.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        user = request.form["username"]
-        password = request.form["password"]
-
-        conn = db()
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username=? AND password=?", (user, password))
-        result = c.fetchone()
-        conn.close()
-
-        if result:
-            session.permanent = True
-            session["user"] = user
-            return redirect("/")
-
+        session["user"] = request.form["username"]
+        return redirect("/")
     return render_template("login.html")
 
 
-@app.route("/logout")
-def logout():
+@app.route("/logout_user")
+def logout_user():
     session.clear()
     return redirect("/")
-
-
-@app.route("/upload_avatar", methods=["POST"])
-def upload_avatar():
-    if "user" not in session:
-        return redirect("/login")
-
-    file = request.files.get("avatar")
-    filename, _ = save_uploaded_file(file, AVATAR_FOLDER, session["user"])
-
-    if filename:
-        conn = db()
-        c = conn.cursor()
-        c.execute("UPDATE users SET avatar=? WHERE username=?", (filename, session["user"]))
-        conn.commit()
-        conn.close()
-
-    return redirect("/chat")
-
+    
 
 if __name__ == "__main__":
-    print("SERVER START")
     app.run(debug=True)
