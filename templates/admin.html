@@ -8,55 +8,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
 <style>
-body {
-    margin: 0;
-    background: #0a0a0a;
-    color: white;
-    font-family: Inter, sans-serif;
-}
-
-.page {
-    max-width: 760px;
-    margin: auto;
-    padding: 20px;
-}
-
-.panel {
-    background: #111;
-    padding: 15px;
-    border-radius: 15px;
-}
-
-input, select, textarea, button {
-    width: 100%;
-    margin-bottom: 10px;
-    padding: 10px;
-    border-radius: 10px;
-    border: none;
-}
-
-button {
-    background: purple;
-    color: white;
-    font-weight: bold;
-}
-
-.cards {
-    margin-top: 20px;
-}
-
-.item {
-    background: #111;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-}
-
-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
-}
+body { margin:0; background:#0a0a0a; color:white; font-family:Inter,sans-serif;}
+.page { max-width:760px; margin:auto; padding:20px;}
+.panel { background:#111; padding:15px; border-radius:15px;}
+input,select,textarea,button { width:100%; margin-bottom:10px; padding:10px; border-radius:10px; border:none;}
+button { background:purple; color:white; font-weight:bold;}
+.cards { margin-top:20px;}
+.item { background:#111; padding:10px; margin-bottom:10px; border-radius:10px;}
+img { width:80px; height:80px; object-fit:cover;}
 </style>
 </head>
 
@@ -69,11 +28,11 @@ img {
 <form method="POST" enctype="multipart/form-data" class="panel">
 
 <select name="section">
-    <option value="pmr_exchange">ПМР — Обменники</option>
-    <option value="pmr_shop">ПМР — Магазины</option>
-    <option value="md_exchange">Молдова — Обменники</option>
-    <option value="md_shop">Молдова — Магазины</option>
-    <option value="services">Разные услуги</option>
+<option value="pmr_exchange">ПМР — Обменники</option>
+<option value="pmr_shop">ПМР — Магазины</option>
+<option value="md_exchange">Молдова — Обменники</option>
+<option value="md_shop">Молдова — Магазины</option>
+<option value="services">Разные услуги</option>
 </select>
 
 <input name="title" placeholder="Название" required>
@@ -90,7 +49,7 @@ img {
 {% for card in cards %}
 <div class="item">
 
-<img src="{{ url_for('static', filename='img/' + card.image) }}">
+<img src="{{ card.image }}">
 
 <h3>{{ card.title }}</h3>
 <p>{{ card.description }}</p>
