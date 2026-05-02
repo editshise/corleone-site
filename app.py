@@ -60,7 +60,7 @@ def home():
         })
 
     registered_count = 150  # временно
-    service_count = len(cards_docs)
+    service_count = 5 + len(cards_docs)
 
     return render_template(
         "index.html",
