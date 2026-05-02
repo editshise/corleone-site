@@ -3,16 +3,17 @@ import os
 import json
 
 from flask import Flask, redirect, render_template, request, session
-from werkzeug.utils import secure_filename
 
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, storage
 
-# 🔥 Firebase через ENV (Render)
+# Firebase через ENV (Render)
 firebase_key = json.loads(os.environ.get("FIREBASE_KEY"))
 
 cred = credentials.Certificate(firebase_key)
-firebase_admin.initialize_app(cred)
+firebase_admin.initialize_app(cred, {
+    'storageBucket': f"{firebase_key['project_id']}.appspot.com"
+})
 
 db_firestore = firestore.client()
 
@@ -22,26 +23,23 @@ app.permanent_session_lifetime = timedelta(days=30)
 
 ADMIN_PASSWORD = "148corleone"
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
-AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
 
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(AVATAR_FOLDER, exist_ok=True)
-
-
-def save_uploaded_file(file, folder, prefix):
-    if not file or not file.filename:
+# загрузка в Firebase Storage
+def upload_to_firebase(file):
+    if not file:
         return None
-    filename = secure_filename(file.filename)
-    filename = f"{prefix}_{datetime.now().strftime('%Y%m%d%H%M%S')}_{filename}"
-    file.save(os.path.join(folder, filename))
-    return filename
+
+    bucket = storage.bucket()
+    filename = f"cards/{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+
+    blob = bucket.blob(filename)
+    blob.upload_from_file(file)
+    blob.make_public()
+
+    return blob.public_url
 
 
-# =======================
-# ГЛАВНАЯ (без ошибок)
-# =======================
+# главная
 @app.route("/")
 def home():
     cards_docs = list(db_firestore.collection("cards").stream())
@@ -55,24 +53,19 @@ def home():
         cards_by_section.setdefault(section, []).append({
             "title": data.get("title", ""),
             "description": data.get("description", ""),
-            "image": data.get("image", "default.jpg"),
+            "image": data.get("image", ""),
             "link": data.get("link", ""),
         })
 
-    registered_count = 150  # временно
-    service_count = 5 + len(cards_docs)
-
     return render_template(
         "index.html",
-        registered_count=registered_count,
-        service_count=service_count,
+        registered_count=150,
+        service_count=5 + len(cards_docs),
         cards_by_section=cards_by_section,
     )
 
 
-# =======================
-# АДМИНКА
-# =======================
+# админка
 @app.route("/admin", methods=["GET", "POST"])
 def admin():
     if not session.get("admin"):
@@ -85,17 +78,14 @@ def admin():
         link = request.form.get("link", "")
         image_file = request.files.get("image")
 
-        image = save_uploaded_file(image_file, AVATAR_FOLDER, "card")
-
-        if not image:
-            image = "default.jpg"
+        image = upload_to_firebase(image_file)
 
         if title and description and link:
             db_firestore.collection("cards").add({
                 "section": section,
                 "title": title,
                 "description": description,
-                "image": image,
+                "image": image or "",
                 "link": link,
                 "created_at": datetime.now()
             })
@@ -134,9 +124,7 @@ def logout():
     return redirect("/")
 
 
-# =======================
-# ЧАТ (исправленный)
-# =======================
+# чат
 @app.route("/chat")
 def chat():
     messages = db_firestore.collection("messages") \
@@ -148,17 +136,8 @@ def chat():
 
     for doc in messages:
         data = doc.to_dict()
-
-        result.append({
-            "id": doc.id,
-            "user": data.get("user", ""),
-            "message": data.get("message", ""),
-            "time": data.get("time", ""),
-            "avatar": data.get("avatar", "default.jpg"),
-            "likes": data.get("likes", 0),
-            "fires": data.get("fires", 0),
-            "hearts": data.get("hearts", 0),
-        })
+        data["id"] = doc.id
+        result.append(data)
 
     return render_template("chat.html", messages=result, avatar="default.jpg")
 
@@ -176,18 +155,12 @@ def send():
             "user": user,
             "message": message,
             "time": datetime.now().strftime("%H:%M"),
-            "created_at": datetime.now(),
-            "likes": 0,
-            "fires": 0,
-            "hearts": 0
+            "created_at": datetime.now()
         })
 
     return redirect("/chat")
 
 
-# =======================
-# ЛОГИН
-# =======================
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
