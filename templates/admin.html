@@ -243,7 +243,7 @@ button {
                     <div>
                         <h3>{{ card.title }}</h3>
                         <p>{{ card.description }}</p>
-                        <span class="tag">{{ card.section }}</span>
+                        <span class="tag">{{ card.section|section_label }}</span>
                         <div class="actions">
                             <a class="edit-link" href="/admin/edit/{{ card.id }}">Редактировать</a>
                             <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('Удалить карточку {{ card.title }}?')">
