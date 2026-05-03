@@ -89,6 +89,70 @@ def firebase_client():
 
 FIREBASE_DB, FIRESTORE = firebase_client()
 
+DEFAULT_CARDS = [
+    {
+        "id": "default:cryptonyx",
+        "default_slug": "cryptonyx",
+        "section": "pmr_exchange",
+        "title": "CryptonyX",
+        "description": "????? / ???",
+        "image_src": "cryptonyx.jpg",
+        "link": "https://t.me/cryptonyxor",
+        "is_default": True,
+    },
+    {
+        "id": "default:sinaloa_pmr",
+        "default_slug": "sinaloa_pmr",
+        "section": "pmr_shop",
+        "title": "SINALOA",
+        "description": "MD / PMR",
+        "image_src": "sinaloa.jpg",
+        "link": "https://t.me/SINALOAPMR",
+        "is_default": True,
+    },
+    {
+        "id": "default:kryptomah",
+        "default_slug": "kryptomah",
+        "section": "md_exchange",
+        "title": "KryptoMah",
+        "description": "??? ????",
+        "image_src": "kryptomah.jpg",
+        "link": "#",
+        "is_default": True,
+    },
+    {
+        "id": "default:ghostcrypto",
+        "default_slug": "ghostcrypto",
+        "section": "md_exchange",
+        "title": "GhostCrypto",
+        "description": "?????????",
+        "image_src": "ghost.jpg",
+        "link": "#",
+        "is_default": True,
+    },
+    {
+        "id": "default:sinaloa_md",
+        "default_slug": "sinaloa_md",
+        "section": "md_shop",
+        "title": "SINALOA",
+        "description": "???????",
+        "image_src": "sinaloa.jpg",
+        "link": "https://t.me/SINALOAPMR",
+        "is_default": True,
+    },
+    {
+        "id": "default:red_queen",
+        "default_slug": "red_queen",
+        "section": "services",
+        "title": "Red Queen",
+        "description": "???????/??????? ?????????? ???? ? ????????? (???/??)",
+        "image_src": "redq.png",
+        "link": "https://t.me/umbrella01",
+        "is_default": True,
+    },
+]
+
+
 
 def db():
     return sqlite3.connect(DB_PATH)
@@ -143,6 +207,15 @@ def init_storage():
             image TEXT NOT NULL,
             link TEXT NOT NULL,
             created_at TEXT
+        )
+        """
+    )
+
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS hidden_default_cards (
+            slug TEXT PRIMARY KEY,
+            hidden_at TEXT
         )
         """
     )
@@ -250,6 +323,49 @@ class Store:
         conn = db()
         c = conn.cursor()
         c.execute("UPDATE users SET avatar=? WHERE username=?", (filename, username))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def hidden_default_card_slugs():
+        if FIREBASE_DB:
+            return {doc.id for doc in FIREBASE_DB.collection("hidden_default_cards").stream()}
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("SELECT slug FROM hidden_default_cards")
+        hidden = {row[0] for row in c.fetchall()}
+        conn.close()
+        return hidden
+
+    @staticmethod
+    def default_cards(include_hidden=False):
+        hidden = set() if include_hidden else Store.hidden_default_card_slugs()
+        cards = []
+        for card in DEFAULT_CARDS:
+            if card["default_slug"] in hidden:
+                continue
+            cards.append(dict(card))
+        return cards
+
+    @staticmethod
+    def all_admin_cards():
+        defaults = Store.default_cards()
+        dynamic = Store.cards()
+        return defaults + dynamic
+
+    @staticmethod
+    def hide_default_card(slug):
+        if FIREBASE_DB:
+            FIREBASE_DB.collection("hidden_default_cards").document(slug).set({"hidden_at": now_display()})
+            return
+
+        conn = db()
+        c = conn.cursor()
+        c.execute(
+            "INSERT OR REPLACE INTO hidden_default_cards (slug, hidden_at) VALUES (?, ?)",
+            (slug, now_display()),
+        )
         conn.commit()
         conn.close()
 
@@ -381,6 +497,10 @@ class Store:
 
     @staticmethod
     def delete_card(card_id):
+        if str(card_id).startswith("default:"):
+            Store.hide_default_card(str(card_id).split(":", 1)[1])
+            return
+
         if FIREBASE_DB:
             FIREBASE_DB.collection("cards").document(card_id).delete()
             return
@@ -584,15 +704,20 @@ app.jinja_env.filters["image_src"] = image_src
 @app.route("/")
 def home():
     dynamic_cards = Store.cards()
+    default_cards = Store.default_cards()
     cards_by_section = {}
+    default_cards_by_section = {}
     for card in dynamic_cards:
         cards_by_section.setdefault(card["section"], []).append(card)
+    for card in default_cards:
+        default_cards_by_section.setdefault(card["section"], []).append(card)
 
     return render_template(
         "index.html",
         registered_count=148 + Store.users_count(),
-        service_count=5 + len(dynamic_cards),
+        service_count=len(default_cards) + len(dynamic_cards),
         cards_by_section=cards_by_section,
+        default_cards_by_section=default_cards_by_section,
         storage_mode="firebase" if Store.using_firebase() else "sqlite",
     )
 
@@ -614,7 +739,7 @@ def admin():
 
         return redirect("/admin")
 
-    return render_template("admin.html", cards=Store.cards())
+    return render_template("admin.html", cards=Store.all_admin_cards())
 
 
 @app.route("/admin/edit/<card_id>", methods=["GET", "POST"])
