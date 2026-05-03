@@ -219,6 +219,15 @@ def init_storage():
         )
         """
     )
+    c.execute(
+        """
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT,
+            updated_at TEXT
+        )
+        """
+    )
     ensure_column(c, "chat", "file", "TEXT")
     ensure_column(c, "chat", "file_name", "TEXT")
     ensure_column(c, "chat", "message_type", "TEXT DEFAULT 'text'")
@@ -242,6 +251,39 @@ class Store:
     @staticmethod
     def using_firebase():
         return FIREBASE_DB is not None
+
+    @staticmethod
+    def get_setting(key, default=None):
+        if FIREBASE_DB:
+            doc = FIREBASE_DB.collection("settings").document(key).get()
+            if not doc.exists:
+                return default
+            return doc.to_dict().get("value", default)
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("SELECT value FROM settings WHERE key=?", (key,))
+        result = c.fetchone()
+        conn.close()
+        return result[0] if result else default
+
+    @staticmethod
+    def set_setting(key, value):
+        if FIREBASE_DB:
+            FIREBASE_DB.collection("settings").document(key).set(
+                {"value": value, "updated_at": now_display()},
+                merge=True,
+            )
+            return
+
+        conn = db()
+        c = conn.cursor()
+        c.execute(
+            "INSERT OR REPLACE INTO settings (key, value, updated_at) VALUES (?, ?, ?)",
+            (key, value, now_display()),
+        )
+        conn.commit()
+        conn.close()
 
     @staticmethod
     def users_count():
@@ -742,6 +784,7 @@ def home():
         service_count=len(default_cards) + len(dynamic_cards),
         cards_by_section=cards_by_section,
         default_cards_by_section=default_cards_by_section,
+        banner_src=Store.get_setting("hero_banner", "banner.jpg"),
         storage_mode="firebase" if Store.using_firebase() else "sqlite",
     )
 
@@ -752,6 +795,12 @@ def admin():
         return redirect("/admin/login")
 
     if request.method == "POST":
+        if request.form.get("form_type") == "banner":
+            banner_src_value = encode_image(request.files.get("banner"))
+            if banner_src_value:
+                Store.set_setting("hero_banner", banner_src_value)
+            return redirect("/admin")
+
         section = request.form.get("section", "services")
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
@@ -763,7 +812,7 @@ def admin():
 
         return redirect("/admin")
 
-    return render_template("admin.html", cards=Store.all_admin_cards())
+    return render_template("admin.html", cards=Store.all_admin_cards(), banner_src=Store.get_setting("hero_banner", "banner.jpg"))
 
 
 @app.route("/admin/edit/<card_id>", methods=["GET", "POST"])
