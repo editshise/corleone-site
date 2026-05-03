@@ -701,6 +701,30 @@ def image_src(value):
 app.jinja_env.filters["image_src"] = image_src
 
 
+SECTION_LABELS = {
+    "pmr_exchange": "ПМР — Обменники",
+    "pmr_shop": "ПМР — Магазины",
+    "md_exchange": "Молдова — Обменники",
+    "md_shop": "Магазины-Молдова",
+    "services": "Разные услуги",
+}
+
+
+def section_label(value):
+    return SECTION_LABELS.get(value, value)
+
+
+app.jinja_env.filters["section_label"] = section_label
+
+
+@app.after_request
+def no_cache(response):
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
+
+
 @app.route("/")
 def home():
     dynamic_cards = Store.cards()
