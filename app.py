@@ -12,12 +12,14 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 app.permanent_session_lifetime = timedelta(days=30)
+app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "148corleone")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "database.db")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
+IMG_FOLDER = os.path.join(BASE_DIR, "static", "img")
 
 
 def now_time():
@@ -42,6 +44,11 @@ def encode_image(file):
 
     mime = file.mimetype or "image/jpeg"
     return f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
+
+
+def save_admin_image(file, prefix):
+    filename, _ = save_uploaded_file(file, IMG_FOLDER, prefix)
+    return filename
 
 
 def save_uploaded_file(file, folder, prefix):
@@ -878,7 +885,7 @@ def admin():
 
     if request.method == "POST":
         if request.form.get("form_type") == "banner":
-            banner_src_value = encode_image(request.files.get("banner"))
+            banner_src_value = save_admin_image(request.files.get("banner"), "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
             return redirect("/admin")
@@ -887,7 +894,7 @@ def admin():
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         link = request.form.get("link", "").strip()
-        image_src_value = encode_image(request.files.get("image"))
+        image_src_value = save_admin_image(request.files.get("image"), "card")
 
         if title and description and link and image_src_value:
             Store.add_card(section, title, description, link, image_src_value)
@@ -911,7 +918,7 @@ def admin_edit(card_id):
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         link = request.form.get("link", "").strip()
-        image_src_value = encode_image(request.files.get("image"))
+        image_src_value = save_admin_image(request.files.get("image"), "card")
 
         if title and description and link:
             Store.update_card(card_id, section, title, description, link, image_src_value)
