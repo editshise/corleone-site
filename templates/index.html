@@ -118,6 +118,12 @@ h1 {
     margin: 18px auto 4px;
 }
 
+.hero-banner-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+}
+
 .hero-banner-wrap::before {
     content: "";
     position: absolute;
@@ -502,9 +508,15 @@ h1 {
 <p class="desc">Все сервисы и обменники в одном месте</p>
 
 <div class="hero-banner-wrap">
-    <div class="hero-banner">
-        <img src="{{ banner_src|image_src }}" alt="Corleone banner">
-    </div>
+    {% if banner_link %}
+    <a class="hero-banner-link" href="{{ banner_link }}" target="_blank" rel="noopener">
+    {% endif %}
+        <div class="hero-banner">
+            <img src="{{ banner_src|image_src }}" alt="Corleone banner">
+        </div>
+    {% if banner_link %}
+    </a>
+    {% endif %}
 </div>
 
 <div class="site-stats">
