@@ -161,14 +161,18 @@ button { width: 100%; margin-top: 12px; }
         <div class="grid">
             <label>
                 Новый баннер
-                <input type="file" name="banner" accept="image/*" required>
+                <input type="file" name="banner" accept="image/*">
+            </label>
+            <label>
+                Ссылка при нажатии
+                <input type="url" name="banner_link" value="{{ banner_link or 'https://t.me/doncrln' }}" placeholder="https://t.me/doncrln">
             </label>
             <label>
                 Сейчас стоит
                 <img class="preview" src="{{ banner_src|image_src }}" alt="Текущий баннер">
             </label>
         </div>
-        <button type="submit">Обновить баннер</button>
+        <button type="submit">Сохранить баннер</button>
     </form>
 
     <form class="panel" method="post" enctype="multipart/form-data">
