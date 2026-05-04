@@ -12,7 +12,7 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "secret123")
 app.permanent_session_lifetime = timedelta(days=30)
-app.config["MAX_CONTENT_LENGTH"] = 25 * 1024 * 1024
+app.config["MAX_CONTENT_LENGTH"] = 100 * 1024 * 1024
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "148corleone")
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +20,19 @@ DB_PATH = os.path.join(BASE_DIR, "database.db")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
 IMG_FOLDER = os.path.join(BASE_DIR, "static", "img")
-ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".jfif", ".png", ".webp", ".gif", ".bmp"}
+ALLOWED_IMAGE_EXTENSIONS = {
+    ".jpg",
+    ".jpeg",
+    ".jfif",
+    ".png",
+    ".webp",
+    ".gif",
+    ".bmp",
+    ".avif",
+    ".svg",
+    ".heic",
+    ".heif",
+}
 
 
 def now_time():
@@ -60,7 +72,7 @@ def save_uploaded_file(file, folder, prefix):
     raw_name = file.filename or ""
     ext = os.path.splitext(original_name or raw_name)[1].lower()
     data = file.read()
-    if len(data) < 128:
+    if not data:
         return None, None
 
     mime_ext = {
@@ -70,6 +82,10 @@ def save_uploaded_file(file, folder, prefix):
         "image/webp": ".webp",
         "image/gif": ".gif",
         "image/bmp": ".bmp",
+        "image/avif": ".avif",
+        "image/svg+xml": ".svg",
+        "image/heic": ".heic",
+        "image/heif": ".heif",
     }.get((file.mimetype or "").lower(), "")
 
     if data.startswith(b"\xff\xd8\xff"):
@@ -85,8 +101,11 @@ def save_uploaded_file(file, folder, prefix):
     elif mime_ext:
         ext = mime_ext
 
-    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+    looks_like_image = (file.mimetype or "").lower().startswith("image/")
+    if ext not in ALLOWED_IMAGE_EXTENSIONS and not looks_like_image:
         return None, None
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        ext = mime_ext or ".jpg"
 
     os.makedirs(folder, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
@@ -929,9 +948,15 @@ def admin():
 
     if request.method == "POST":
         if request.form.get("form_type") == "banner":
-            banner_src_value = save_admin_image(request.files.get("banner"), "banner")
+            banner_file = request.files.get("banner")
+            banner_src_value = save_admin_image(banner_file, "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
+                session["admin_notice"] = "Баннер сохранен."
+            elif banner_file and banner_file.filename:
+                session["admin_error"] = "Баннер не сохранился: файл не похож на картинку или пустой."
+            else:
+                session["admin_notice"] = "Ссылка баннера сохранена."
             banner_link_value = clean_external_link(request.form.get("banner_link")) or "https://t.me/doncrln"
             Store.set_setting("hero_banner_link", banner_link_value)
             return redirect("/admin")
@@ -940,10 +965,18 @@ def admin():
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         link = clean_external_link(request.form.get("link")) or "#"
-        image_src_value = save_admin_image(request.files.get("image"), "card")
+        image_file = request.files.get("image")
+        image_src_value = save_admin_image(image_file, "card")
 
         if title and description and image_src_value:
             Store.add_card(section, title, description, link, image_src_value)
+            session["admin_notice"] = "Карточка сохранена."
+        elif not title or not description:
+            session["admin_error"] = "Карточка не сохранилась: заполни имя и описание."
+        elif image_file and image_file.filename:
+            session["admin_error"] = "Карточка не сохранилась: фото не похоже на картинку или файл пустой."
+        else:
+            session["admin_error"] = "Карточка не сохранилась: выбери фото."
 
         return redirect("/admin")
 
@@ -952,6 +985,8 @@ def admin():
         cards=Store.all_admin_cards(),
         banner_src=Store.get_setting("hero_banner", "banner.jpg"),
         banner_link=Store.get_setting("hero_banner_link", "https://t.me/doncrln"),
+        notice=session.pop("admin_notice", None),
+        error=session.pop("admin_error", None),
     )
 
 
