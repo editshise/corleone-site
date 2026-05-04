@@ -874,6 +874,7 @@ def home():
         cards_by_section=cards_by_section,
         default_cards_by_section=default_cards_by_section,
         banner_src=Store.get_setting("hero_banner", "banner.jpg"),
+        banner_link=Store.get_setting("hero_banner_link", "https://t.me/doncrln"),
         storage_mode="firebase" if Store.using_firebase() else "sqlite",
     )
 
@@ -888,6 +889,7 @@ def admin():
             banner_src_value = save_admin_image(request.files.get("banner"), "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
+            Store.set_setting("hero_banner_link", request.form.get("banner_link", "").strip())
             return redirect("/admin")
 
         section = request.form.get("section", "services")
@@ -901,7 +903,12 @@ def admin():
 
         return redirect("/admin")
 
-    return render_template("admin.html", cards=Store.all_admin_cards(), banner_src=Store.get_setting("hero_banner", "banner.jpg"))
+    return render_template(
+        "admin.html",
+        cards=Store.all_admin_cards(),
+        banner_src=Store.get_setting("hero_banner", "banner.jpg"),
+        banner_link=Store.get_setting("hero_banner_link", "https://t.me/doncrln"),
+    )
 
 
 @app.route("/admin/edit/<card_id>", methods=["GET", "POST"])
