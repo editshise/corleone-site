@@ -221,6 +221,19 @@ def init_storage():
     )
     c.execute(
         """
+        CREATE TABLE IF NOT EXISTS default_card_overrides (
+            slug TEXT PRIMARY KEY,
+            section TEXT,
+            title TEXT,
+            description TEXT,
+            image_src TEXT,
+            link TEXT,
+            updated_at TEXT
+        )
+        """
+    )
+    c.execute(
+        """
         CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT,
@@ -381,13 +394,43 @@ class Store:
         return hidden
 
     @staticmethod
+    def default_card_overrides():
+        if FIREBASE_DB:
+            overrides = {}
+            for doc in FIREBASE_DB.collection("default_card_overrides").stream():
+                overrides[doc.id] = doc.to_dict()
+            return overrides
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("SELECT slug, section, title, description, image_src, link FROM default_card_overrides")
+        overrides = {
+            row[0]: {
+                "section": row[1],
+                "title": row[2],
+                "description": row[3],
+                "image_src": row[4],
+                "link": row[5],
+            }
+            for row in c.fetchall()
+        }
+        conn.close()
+        return overrides
+
+    @staticmethod
     def default_cards(include_hidden=False):
         hidden = set() if include_hidden else Store.hidden_default_card_slugs()
+        overrides = Store.default_card_overrides()
         cards = []
         for card in DEFAULT_CARDS:
             if card["default_slug"] in hidden:
                 continue
-            cards.append(dict(card))
+            item = dict(card)
+            override = overrides.get(card["default_slug"]) or {}
+            for key in ("section", "title", "description", "image_src", "link"):
+                if override.get(key):
+                    item[key] = override[key]
+            cards.append(item)
         return cards
 
     @staticmethod
@@ -471,6 +514,13 @@ class Store:
 
     @staticmethod
     def get_card(card_id):
+        if str(card_id).startswith("default:"):
+            slug = str(card_id).split(":", 1)[1]
+            for card in Store.default_cards(include_hidden=True):
+                if card["default_slug"] == slug:
+                    return dict(card)
+            return None
+
         if FIREBASE_DB:
             doc = FIREBASE_DB.collection("cards").document(card_id).get()
             if not doc.exists:
@@ -499,6 +549,38 @@ class Store:
 
     @staticmethod
     def update_card(card_id, section, title, description, link, image_src=None):
+        if str(card_id).startswith("default:"):
+            slug = str(card_id).split(":", 1)[1]
+            current = Store.get_card(card_id)
+            if not current:
+                return
+            image_value = image_src or current.get("image_src") or current.get("image") or ""
+            payload = {
+                "section": section,
+                "title": title,
+                "description": description,
+                "link": link,
+                "image_src": image_value,
+                "updated_at": now_display(),
+            }
+            if FIREBASE_DB:
+                FIREBASE_DB.collection("default_card_overrides").document(slug).set(payload, merge=True)
+                return
+
+            conn = db()
+            c = conn.cursor()
+            c.execute(
+                """
+                INSERT OR REPLACE INTO default_card_overrides
+                    (slug, section, title, description, image_src, link, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (slug, section, title, description, image_value, link, now_display()),
+            )
+            conn.commit()
+            conn.close()
+            return
+
         payload = {
             "section": section,
             "title": title,
