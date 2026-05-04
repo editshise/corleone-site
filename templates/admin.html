@@ -133,6 +133,22 @@ button { width: 100%; margin-top: 12px; }
     border-radius: 14px;
     color: #aaa;
 }
+.alert {
+    border-radius: 12px;
+    margin: 0 0 16px;
+    padding: 13px 15px;
+    font-weight: 800;
+}
+.alert.ok {
+    background: rgba(34, 197, 94, 0.16);
+    border: 1px solid rgba(34, 197, 94, 0.38);
+    color: #bbf7d0;
+}
+.alert.error {
+    background: rgba(248, 113, 113, 0.16);
+    border: 1px solid rgba(248, 113, 113, 0.38);
+    color: #fecaca;
+}
 @media (max-width: 720px) {
     .top { align-items: flex-start; flex-direction: column; }
     .grid { grid-template-columns: 1fr; }
@@ -153,6 +169,13 @@ button { width: 100%; margin-top: 12px; }
             <a href="/admin/logout">Выйти</a>
         </div>
     </div>
+
+    {% if notice %}
+    <div class="alert ok">{{ notice }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="alert error">{{ error }}</div>
+    {% endif %}
 
     <form class="panel" method="post" enctype="multipart/form-data">
         <input type="hidden" name="form_type" value="banner">
