@@ -20,6 +20,7 @@ DB_PATH = os.path.join(BASE_DIR, "database.db")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
 IMG_FOLDER = os.path.join(BASE_DIR, "static", "img")
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
 def now_time():
@@ -56,15 +57,29 @@ def save_uploaded_file(file, folder, prefix):
         return None, None
 
     original_name = secure_filename(file.filename)
-    if not original_name:
+    raw_name = file.filename or ""
+    ext = os.path.splitext(original_name or raw_name)[1].lower()
+    if not ext and file.mimetype:
+        ext = {
+            "image/jpeg": ".jpg",
+            "image/png": ".png",
+            "image/webp": ".webp",
+            "image/gif": ".gif",
+        }.get(file.mimetype.lower(), "")
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return None, None
+
+    data = file.read()
+    if len(data) < 128:
         return None, None
 
     os.makedirs(folder, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
-    filename = f"{prefix}_{timestamp}_{original_name}"
-    file.save(os.path.join(folder, filename))
+    filename = f"{prefix}_{timestamp}_{uuid.uuid4().hex[:8]}{ext}"
+    with open(os.path.join(folder, filename), "wb") as saved_file:
+        saved_file.write(data)
 
-    return filename, original_name
+    return filename, original_name or raw_name
 
 
 def firebase_client():
@@ -889,7 +904,8 @@ def admin():
             banner_src_value = save_admin_image(request.files.get("banner"), "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
-            Store.set_setting("hero_banner_link", request.form.get("banner_link", "").strip())
+            banner_link_value = request.form.get("banner_link", "").strip() or "https://t.me/doncrln"
+            Store.set_setting("hero_banner_link", banner_link_value)
             return redirect("/admin")
 
         section = request.form.get("section", "services")
