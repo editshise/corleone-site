@@ -6,189 +6,140 @@
 <title>Админ-панель | Corleone</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-* {
-    box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
     margin: 0;
-    background: #0a0a0a;
-    color: white;
-    font-family: Inter, sans-serif;
+    min-height: 100vh;
+    background: #050505;
+    color: #fff;
+    font-family: Inter, Arial, sans-serif;
 }
-
 .page {
-    width: min(760px, 100%);
+    width: min(980px, calc(100% - 28px));
     margin: 0 auto;
-    padding: 18px;
+    padding: 24px 0 48px;
 }
-
 .top {
     display: flex;
-    align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    align-items: center;
+    gap: 14px;
     margin-bottom: 18px;
 }
-
-h1 {
-    margin: 0;
-    font-size: 24px;
-}
-
-.top a {
-    color: #ddd;
-    text-decoration: none;
-    font-size: 13px;
-}
-
-.panel {
-    padding: 16px;
-    border: 1px solid rgba(255,255,255,0.08);
+h1, h2, h3, p { margin-top: 0; }
+h1 { font-size: 28px; margin-bottom: 0; }
+h2 { font-size: 18px; margin-bottom: 10px; }
+a { color: #c4b5fd; text-decoration: none; font-weight: 700; }
+.subtitle { color: #aaa; font-size: 14px; line-height: 1.5; }
+.panel, .item {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
     border-radius: 18px;
-    background: #111;
-    box-shadow: 0 18px 44px rgba(0,0,0,0.28);
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.28);
 }
-
 .grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
-
 label {
     display: grid;
     gap: 7px;
-    color: #aaa;
-    font-size: 12px;
+    color: #ddd;
+    font-size: 14px;
+    font-weight: 700;
 }
-
-input,
-select,
-textarea,
-button {
+input, select, textarea {
     width: 100%;
-    border: none;
-    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(0,0,0,0.5);
+    color: #fff;
     font: inherit;
 }
-
-input,
-select,
-textarea {
-    padding: 12px;
-    background: #222;
-    color: white;
-    outline: none;
-}
-
-textarea {
-    min-height: 94px;
-    resize: vertical;
-}
-
-.wide {
-    grid-column: span 2;
-}
-
-button {
-    margin-top: 12px;
-    padding: 13px;
-    background: linear-gradient(90deg,#7c3aed,#ff2bd6);
-    color: white;
+textarea { min-height: 96px; resize: vertical; }
+button, .edit-link {
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #7c3aed, #db2777);
+    color: #fff;
     font-weight: 800;
     cursor: pointer;
+    text-align: center;
 }
-
+button { width: 100%; margin-top: 12px; }
 .cards {
     display: grid;
     gap: 12px;
     margin-top: 18px;
 }
-
 .item {
     display: grid;
-    grid-template-columns: 84px 1fr;
-    gap: 12px;
-    padding: 10px;
-    border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px;
+    grid-template-columns: 112px 1fr;
+    gap: 14px;
+    align-items: start;
+}
+.item img {
+    width: 112px;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border-radius: 14px;
     background: #111;
 }
-
-.item img {
-    width: 84px;
-    height: 84px;
-    object-fit: cover;
-    border-radius: 12px;
-}
-
-.item h3 {
-    margin: 0 0 4px;
-    font-size: 16px;
-}
-
-.item p {
-    margin: 0 0 8px;
-    color: #aaa;
-    font-size: 13px;
-}
-
+.item p { color: #bbb; line-height: 1.45; margin-bottom: 10px; }
 .tag {
-    display: inline-block;
-    padding: 5px 8px;
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 9px;
     border-radius: 999px;
     background: rgba(124,58,237,0.22);
     color: #ddd;
-    font-size: 11px;
-}
-
-.actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.edit-link,
-.delete-btn {
-    flex: 1;
-    padding: 9px 10px;
-    border-radius: 12px;
-    text-align: center;
-    text-decoration: none;
     font-size: 12px;
     font-weight: 800;
 }
-
-.edit-link {
-    background: #262626;
-    color: white;
+.actions {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    margin-top: 12px;
 }
-
-.delete-form {
-    flex: 1;
-}
-
+.delete-form { flex: 1; }
 .delete-btn {
-    margin: 0;
-    background: #7f1d1d;
+    background: linear-gradient(135deg, #991b1b, #ef4444);
+    margin-top: 0;
 }
-
+.edit-link {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.wide { grid-column: span 2; }
+.preview {
+    width: 100%;
+    max-height: 150px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: #111;
+}
 .empty {
-    margin-top: 18px;
-    color: #888;
-    text-align: center;
+    padding: 18px;
+    border: 1px dashed rgba(255,255,255,0.18);
+    border-radius: 14px;
+    color: #aaa;
 }
-
-@media (max-width: 560px) {
-    .grid,
-    .item {
-        grid-template-columns: 1fr;
-    }
-
-    .wide {
-        grid-column: span 1;
-    }
+@media (max-width: 720px) {
+    .top { align-items: flex-start; flex-direction: column; }
+    .grid { grid-template-columns: 1fr; }
+    .wide { grid-column: span 1; }
+    .item { grid-template-columns: 1fr; }
+    .item img { width: 100%; aspect-ratio: 16 / 9; }
+    .actions { flex-direction: column; }
 }
 </style>
 </head>
@@ -204,6 +155,24 @@ button {
     </div>
 
     <form class="panel" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="form_type" value="banner">
+        <h2>Рекламный баннер</h2>
+        <p class="subtitle">Этот баннер показывается на главной странице над кнопками ПМР / Молдова.</p>
+        <div class="grid">
+            <label>
+                Новый баннер
+                <input type="file" name="banner" accept="image/*" required>
+            </label>
+            <label>
+                Сейчас стоит
+                <img class="preview" src="{{ banner_src|image_src }}" alt="Текущий баннер">
+            </label>
+        </div>
+        <button type="submit">Обновить баннер</button>
+    </form>
+
+    <form class="panel" method="post" enctype="multipart/form-data">
+        <h2>Добавить карточку</h2>
         <div class="grid">
             <label>
                 Раздел
@@ -232,7 +201,7 @@ button {
                 <textarea name="description" placeholder="Коротко опиши услугу" required></textarea>
             </label>
         </div>
-        <button>Добавить карточку</button>
+        <button type="submit">Добавить карточку</button>
     </form>
 
     {% if cards %}
@@ -243,7 +212,7 @@ button {
                     <div>
                         <h3>{{ card.title }}</h3>
                         <p>{{ card.description }}</p>
-                        <span class="tag">{{ card.section|section_label }}</span>
+                        <span class="tag">{{ card.section|section_label }}{% if card.is_default %} · стандартная{% endif %}</span>
                         <div class="actions">
                             <a class="edit-link" href="/admin/edit/{{ card.id }}">Редактировать</a>
                             <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('Удалить карточку {{ card.title }}?')">
@@ -255,7 +224,7 @@ button {
             {% endfor %}
         </section>
     {% else %}
-        <div class="empty">Пока нет добавленных через админку карточек.</div>
+        <div class="empty">Пока нет добавленных карточек.</div>
     {% endif %}
 </main>
 </body>
