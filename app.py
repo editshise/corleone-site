@@ -20,7 +20,7 @@ DB_PATH = os.path.join(BASE_DIR, "database.db")
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 AVATAR_FOLDER = os.path.join(BASE_DIR, "static", "img")
 IMG_FOLDER = os.path.join(BASE_DIR, "static", "img")
-ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".jfif", ".png", ".webp", ".gif", ".bmp"}
 
 
 def now_time():
@@ -59,18 +59,33 @@ def save_uploaded_file(file, folder, prefix):
     original_name = secure_filename(file.filename)
     raw_name = file.filename or ""
     ext = os.path.splitext(original_name or raw_name)[1].lower()
-    if not ext and file.mimetype:
-        ext = {
-            "image/jpeg": ".jpg",
-            "image/png": ".png",
-            "image/webp": ".webp",
-            "image/gif": ".gif",
-        }.get(file.mimetype.lower(), "")
-    if ext not in ALLOWED_IMAGE_EXTENSIONS:
-        return None, None
-
     data = file.read()
     if len(data) < 128:
+        return None, None
+
+    mime_ext = {
+        "image/jpeg": ".jpg",
+        "image/jpg": ".jpg",
+        "image/png": ".png",
+        "image/webp": ".webp",
+        "image/gif": ".gif",
+        "image/bmp": ".bmp",
+    }.get((file.mimetype or "").lower(), "")
+
+    if data.startswith(b"\xff\xd8\xff"):
+        ext = ".jpg"
+    elif data.startswith(b"\x89PNG\r\n\x1a\n"):
+        ext = ".png"
+    elif data.startswith(b"RIFF") and data[8:12] == b"WEBP":
+        ext = ".webp"
+    elif data.startswith((b"GIF87a", b"GIF89a")):
+        ext = ".gif"
+    elif data.startswith(b"BM"):
+        ext = ".bmp"
+    elif mime_ext:
+        ext = mime_ext
+
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
         return None, None
 
     os.makedirs(folder, exist_ok=True)
@@ -80,6 +95,19 @@ def save_uploaded_file(file, folder, prefix):
         saved_file.write(data)
 
     return filename, original_name or raw_name
+
+
+def clean_external_link(value):
+    value = (value or "").strip()
+    if not value:
+        return ""
+    if value.startswith("@"):
+        return f"https://t.me/{value[1:]}"
+    if value.startswith("t.me/"):
+        return f"https://{value}"
+    if value.startswith(("http://", "https://")):
+        return value
+    return f"https://{value}"
 
 
 def firebase_client():
@@ -904,17 +932,17 @@ def admin():
             banner_src_value = save_admin_image(request.files.get("banner"), "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
-            banner_link_value = request.form.get("banner_link", "").strip() or "https://t.me/doncrln"
+            banner_link_value = clean_external_link(request.form.get("banner_link")) or "https://t.me/doncrln"
             Store.set_setting("hero_banner_link", banner_link_value)
             return redirect("/admin")
 
         section = request.form.get("section", "services")
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
-        link = request.form.get("link", "").strip()
+        link = clean_external_link(request.form.get("link")) or "#"
         image_src_value = save_admin_image(request.files.get("image"), "card")
 
-        if title and description and link and image_src_value:
+        if title and description and image_src_value:
             Store.add_card(section, title, description, link, image_src_value)
 
         return redirect("/admin")
@@ -940,10 +968,10 @@ def admin_edit(card_id):
         section = request.form.get("section", "services")
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
-        link = request.form.get("link", "").strip()
+        link = clean_external_link(request.form.get("link")) or "#"
         image_src_value = save_admin_image(request.files.get("image"), "card")
 
-        if title and description and link:
+        if title and description:
             Store.update_card(card_id, section, title, description, link, image_src_value)
             return redirect("/admin")
 
