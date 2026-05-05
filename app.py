@@ -894,6 +894,23 @@ def image_src(value):
 app.jinja_env.filters["image_src"] = image_src
 
 
+def image_file_status(value):
+    if not value:
+        return "нет файла"
+    if value.startswith("data:"):
+        return "в базе"
+    if value.startswith("http://") or value.startswith("https://"):
+        return "внешняя ссылка"
+    path = os.path.join(IMG_FOLDER, value)
+    if os.path.exists(path):
+        size = os.path.getsize(path)
+        return f"файл найден, {size} байт"
+    return "файл не найден"
+
+
+app.jinja_env.filters["image_file_status"] = image_file_status
+
+
 SECTION_LABELS = {
     "pmr_exchange": "ПМР — Обменники",
     "pmr_shop": "ПМР — Магазины",
