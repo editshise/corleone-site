@@ -101,6 +101,14 @@ button { width: 100%; margin-top: 12px; }
     font-size: 12px;
     font-weight: 800;
 }
+.file-status {
+    display: block;
+    margin-top: 8px;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.4;
+    word-break: break-all;
+}
 .actions {
     display: flex;
     gap: 10px;
@@ -235,11 +243,12 @@ button { width: 100%; margin-top: 12px; }
         <section class="cards">
             {% for card in cards %}
                 <article class="item">
-                    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+                    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
                     <div>
                         <h3>{{ card.title }}</h3>
                         <p>{{ card.description }}</p>
                         <span class="tag">{{ card.section|section_label }}{% if card.is_default %} · стандартная{% endif %}</span>
+                        <span class="file-status">{{ card.image_src }} — {{ card.image_src|image_file_status }}</span>
                         <div class="actions">
                             <a class="edit-link" href="/admin/edit/{{ card.id }}">Редактировать</a>
                             <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('Удалить карточку {{ card.title }}?')">
