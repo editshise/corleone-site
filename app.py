@@ -60,8 +60,7 @@ def encode_image(file):
 
 
 def save_admin_image(file, prefix):
-    filename, _ = save_uploaded_file(file, IMG_FOLDER, prefix)
-    return filename
+    return encode_image(file)
 
 
 def save_uploaded_file(file, folder, prefix):
