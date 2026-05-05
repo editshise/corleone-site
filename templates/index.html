@@ -512,7 +512,7 @@ h1 {
     <a class="hero-banner-link" href="{{ banner_link }}" target="_blank" rel="noopener">
     {% endif %}
         <div class="hero-banner">
-            <img src="{{ banner_src|image_src }}" alt="Corleone banner">
+            <img src="{{ banner_src|image_src }}" alt="Corleone banner" onerror="this.src='/static/img/banner.jpg'">
         </div>
     {% if banner_link %}
     </a>
@@ -541,7 +541,7 @@ h1 {
 
 {% for card in default_cards_by_section.get('pmr_exchange', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -550,7 +550,7 @@ h1 {
 
 {% for card in cards_by_section.get('pmr_exchange', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -561,7 +561,7 @@ h1 {
 
 {% for card in default_cards_by_section.get('pmr_shop', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -570,7 +570,7 @@ h1 {
 
 {% for card in cards_by_section.get('pmr_shop', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -585,7 +585,7 @@ h1 {
 
 {% for card in default_cards_by_section.get('md_exchange', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -594,7 +594,7 @@ h1 {
 
 {% for card in cards_by_section.get('md_exchange', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -605,7 +605,7 @@ h1 {
 
 {% for card in default_cards_by_section.get('md_shop', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -614,7 +614,7 @@ h1 {
 
 {% for card in cards_by_section.get('md_shop', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -629,7 +629,7 @@ h1 {
 
 {% for card in default_cards_by_section.get('services', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
@@ -638,7 +638,7 @@ h1 {
 
 {% for card in cards_by_section.get('services', []) %}
 <div class="card">
-    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
     <a href="{{ card.link }}">Перейти</a>
