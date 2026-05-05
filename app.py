@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import base64
+from io import BytesIO
 import json
 import os
 import sqlite3
@@ -7,6 +8,7 @@ import uuid
 
 from flask import Flask, redirect, render_template, request, session
 from werkzeug.utils import secure_filename
+from PIL import Image, ImageOps, UnidentifiedImageError
 
 
 app = Flask(__name__)
@@ -55,7 +57,20 @@ def encode_image(file):
     if not data:
         return None
 
-    mime = file.mimetype or "image/jpeg"
+    try:
+        image = Image.open(BytesIO(data))
+        image = ImageOps.exif_transpose(image)
+        if image.mode not in ("RGB", "L"):
+            image = image.convert("RGB")
+
+        image.thumbnail((900, 900), Image.Resampling.LANCZOS)
+        output = BytesIO()
+        image.save(output, format="JPEG", quality=75, optimize=True)
+        data = output.getvalue()
+        mime = "image/jpeg"
+    except (UnidentifiedImageError, OSError):
+        mime = file.mimetype or "image/jpeg"
+
     return f"data:{mime};base64,{base64.b64encode(data).decode('ascii')}"
 
 
