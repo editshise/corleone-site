@@ -333,6 +333,10 @@ h1 {
     background: linear-gradient(135deg,#00a3ff,#7c3aed,#ff2bd6);
 }
 
+.btn.ua-btn {
+    grid-column: span 2;
+}
+
 .section {
     margin-top: 40px;
     scroll-margin-top: 22px;
@@ -482,22 +486,22 @@ h1 {
 
 <audio id="siteMusic" src="{{ url_for('static', filename='audio/incognito.mp3') }}" preload="auto" loop></audio>
 
-<div class="menu-btn" onclick="toggleMenu()">☰</div>
+<div class="menu-btn" onclick="toggleMenu()">в°</div>
 
 <div class="menu" id="menu">
-    <a href="/chat">ЧАТ</a>
-    <a href="https://t.me/doncrlncontact" target="_blank" rel="noopener">Контакты</a>
-    <a href="https://t.me/doncrln" target="_blank" rel="noopener">Поддержка</a>
-    <a href="https://t.me/+aVItOKgZPVA3YjA6" target="_blank" rel="noopener">Общий чат</a>
-    <a href="https://t.me/+boN_YHVolqtiZTIy" target="_blank" rel="noopener">Отзывы</a>
-    <a href="https://t.me/verdict_cash" target="_blank" rel="noopener">Развлечение</a>
-    <a href="/admin">Админ-панель</a>
+    <a href="/chat">Р§РђРў</a>
+    <a href="https://t.me/doncrlncontact" target="_blank" rel="noopener">РљРѕРЅС‚Р°РєС‚С‹</a>
+    <a href="https://t.me/doncrln" target="_blank" rel="noopener">РџРѕРґРґРµСЂР¶РєР°</a>
+    <a href="https://t.me/+aVItOKgZPVA3YjA6" target="_blank" rel="noopener">РћР±С‰РёР№ С‡Р°С‚</a>
+    <a href="https://t.me/+boN_YHVolqtiZTIy" target="_blank" rel="noopener">РћС‚Р·С‹РІС‹</a>
+    <a href="https://t.me/verdict_cash" target="_blank" rel="noopener">Р Р°Р·РІР»РµС‡РµРЅРёРµ</a>
+    <a href="/admin">РђРґРјРёРЅ-РїР°РЅРµР»СЊ</a>
 {% if session.get('user') %}
-    <div>Профиль: {{ session.get('user') }}</div>
-    <div onclick="location.href='/logout'">Выйти</div>
+    <div>РџСЂРѕС„РёР»СЊ: {{ session.get('user') }}</div>
+    <div onclick="location.href='/logout'">Р’С‹Р№С‚Рё</div>
 {% else %}
-    <div onclick="location.href='/login'">Вход</div>
-    <div onclick="location.href='/register'">Регистрация</div>
+    <div onclick="location.href='/login'">Р’С…РѕРґ</div>
+    <div onclick="location.href='/register'">Р РµРіРёСЃС‚СЂР°С†РёСЏ</div>
 {% endif %}
 </div>
 
@@ -505,7 +509,7 @@ h1 {
 
 <h1>HOME <span class="gradient">CORLEONE</span></h1>
 
-<p class="desc">Все сервисы и обменники в одном месте</p>
+<p class="desc">Р’СЃРµ СЃРµСЂРІРёСЃС‹ Рё РѕР±РјРµРЅРЅРёРєРё РІ РѕРґРЅРѕРј РјРµСЃС‚Рµ</p>
 
 <div class="hero-banner-wrap">
     {% if banner_link %}
@@ -521,30 +525,31 @@ h1 {
 
 <div class="site-stats">
     <div class="stat-pill">
-        <div class="stat-label">Зарегистрировано</div>
+        <div class="stat-label">Р—Р°СЂРµРіРёСЃС‚СЂРёСЂРѕРІР°РЅРѕ</div>
         <div class="stat-value">{{ registered_count }}</div>
     </div>
     <div class="stat-pill">
-        <div class="stat-label">Сервисов на сайте</div>
+        <div class="stat-label">РЎРµСЂРІРёСЃРѕРІ РЅР° СЃР°Р№С‚Рµ</div>
         <div class="stat-value">{{ service_count }}</div>
     </div>
 </div>
 
 <div class="buttons">
-    <button class="btn nav-btn active" type="button" data-target="pmr" onclick="scrollToBlock('pmr', this)">ПМР</button>
-    <button class="btn nav-btn" type="button" data-target="md" onclick="scrollToBlock('md', this)">Молдова</button>
+    <button class="btn nav-btn active" type="button" data-target="pmr" onclick="scrollToBlock('pmr', this)">РџРњР </button>
+    <button class="btn nav-btn" type="button" data-target="md" onclick="scrollToBlock('md', this)">РњРѕР»РґРѕРІР°</button>
+    <button class="btn nav-btn ua-btn" type="button" data-target="ua" onclick="scrollToBlock('ua', this)">РЈРєСЂР°РёРЅР°</button>
 </div>
 
 <div id="pmr" class="section">
 
-<h2>ПМР — Обменники</h2>
+<h2>РџРњР  вЂ” РћР±РјРµРЅРЅРёРєРё</h2>
 
 {% for card in default_cards_by_section.get('pmr_exchange', []) %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -553,18 +558,18 @@ h1 {
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
-<h2>ПМР — Магазины</h2>
+<h2>РџРњР  вЂ” РњР°РіР°Р·РёРЅС‹</h2>
 
 {% for card in default_cards_by_section.get('pmr_shop', []) %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -573,7 +578,7 @@ h1 {
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -581,14 +586,14 @@ h1 {
 
 <div id="md" class="section">
 
-<h2>Молдова — Обменники</h2>
+<h2>РњРѕР»РґРѕРІР° вЂ” РћР±РјРµРЅРЅРёРєРё</h2>
 
 {% for card in default_cards_by_section.get('md_exchange', []) %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -597,18 +602,18 @@ h1 {
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
-<h2>Магазины-Молдова</h2>
+<h2>РњР°РіР°Р·РёРЅС‹-РњРѕР»РґРѕРІР°</h2>
 
 {% for card in default_cards_by_section.get('md_shop', []) %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -617,7 +622,7 @@ h1 {
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -625,14 +630,14 @@ h1 {
 
 <div id="services" class="section">
 
-<h2>Разные услуги</h2>
+<h2>Р Р°Р·РЅС‹Рµ СѓСЃР»СѓРіРё</h2>
 
 {% for card in default_cards_by_section.get('services', []) %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
 
@@ -641,9 +646,45 @@ h1 {
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
     <p>{{ card.description }}</p>
-    <a href="{{ card.link }}">Перейти</a>
+    <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
 </div>
 {% endfor %}
+
+</div>
+
+<div id="ua" class="section">
+
+<h2>РЈРєСЂР°РёРЅР° вЂ” РњР°РіР°Р·РёРЅС‹</h2>
+
+{% set ua_shop_cards = default_cards_by_section.get('ua_shop', []) + cards_by_section.get('ua_shop', []) %}
+{% if ua_shop_cards %}
+    {% for card in ua_shop_cards %}
+    <div class="card">
+        <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.description }}</p>
+        <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-section">РљР°СЂС‚РѕС‡РєРё РЈРєСЂР°РёРЅС‹ РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅС‹.</div>
+{% endif %}
+
+<h2>РЈРєСЂР°РёРЅР° вЂ” РћР±РјРµРЅРЅРёРєРё</h2>
+
+{% set ua_exchange_cards = default_cards_by_section.get('ua_exchange', []) + cards_by_section.get('ua_exchange', []) %}
+{% if ua_exchange_cards %}
+    {% for card in ua_exchange_cards %}
+    <div class="card">
+        <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
+        <h3>{{ card.title }}</h3>
+        <p>{{ card.description }}</p>
+        <a href="{{ card.link }}">РџРµСЂРµР№С‚Рё</a>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-section">РћР±РјРµРЅРЅРёРєРё РЈРєСЂР°РёРЅС‹ РїРѕРєР° РЅРµ РґРѕР±Р°РІР»РµРЅС‹.</div>
+{% endif %}
 
 </div>
 
