@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Админ-панель | Corleone</title>
+<title>РђРґРјРёРЅ-РїР°РЅРµР»СЊ | Corleone</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 * { box-sizing: border-box; }
@@ -170,11 +170,11 @@ button { width: 100%; margin-top: 12px; }
 <body>
 <main class="page">
     <div class="top">
-        <h1>Админ-панель</h1>
+        <h1>РђРґРјРёРЅ-РїР°РЅРµР»СЊ</h1>
         <div>
-            <a href="/">Главная</a>
-            &nbsp;·&nbsp;
-            <a href="/admin/logout">Выйти</a>
+            <a href="/">Р“Р»Р°РІРЅР°СЏ</a>
+            &nbsp;В·&nbsp;
+            <a href="/admin/logout">Р’С‹Р№С‚Рё</a>
         </div>
     </div>
 
@@ -187,56 +187,58 @@ button { width: 100%; margin-top: 12px; }
 
     <form class="panel" method="post" enctype="multipart/form-data">
         <input type="hidden" name="form_type" value="banner">
-        <h2>Рекламный баннер</h2>
-        <p class="subtitle">Этот баннер показывается на главной странице над кнопками ПМР / Молдова.</p>
+        <h2>Р РµРєР»Р°РјРЅС‹Р№ Р±Р°РЅРЅРµСЂ</h2>
+        <p class="subtitle">Р­С‚РѕС‚ Р±Р°РЅРЅРµСЂ РїРѕРєР°Р·С‹РІР°РµС‚СЃСЏ РЅР° РіР»Р°РІРЅРѕР№ СЃС‚СЂР°РЅРёС†Рµ РЅР°Рґ РєРЅРѕРїРєР°РјРё РџРњР  / РњРѕР»РґРѕРІР°.</p>
         <div class="grid">
             <label>
-                Новый баннер
+                РќРѕРІС‹Р№ Р±Р°РЅРЅРµСЂ
                 <input type="file" name="banner" accept="image/*">
             </label>
             <label>
-                Ссылка при нажатии
+                РЎСЃС‹Р»РєР° РїСЂРё РЅР°Р¶Р°С‚РёРё
                 <input name="banner_link" value="{{ banner_link or 'https://t.me/doncrln' }}" placeholder="https://t.me/doncrln">
             </label>
             <label>
-                Сейчас стоит
-                <img class="preview" src="{{ banner_src|image_src }}" alt="Текущий баннер">
+                РЎРµР№С‡Р°СЃ СЃС‚РѕРёС‚
+                <img class="preview" src="{{ banner_src|image_src }}" alt="РўРµРєСѓС‰РёР№ Р±Р°РЅРЅРµСЂ">
             </label>
         </div>
-        <button type="submit">Сохранить баннер</button>
+        <button type="submit">РЎРѕС…СЂР°РЅРёС‚СЊ Р±Р°РЅРЅРµСЂ</button>
     </form>
 
     <form class="panel" method="post" enctype="multipart/form-data">
-        <h2>Добавить карточку</h2>
+        <h2>Р”РѕР±Р°РІРёС‚СЊ РєР°СЂС‚РѕС‡РєСѓ</h2>
         <div class="grid">
             <label>
-                Раздел
+                Р Р°Р·РґРµР»
                 <select name="section">
-                    <option value="pmr_exchange">ПМР — Обменники</option>
-                    <option value="pmr_shop">ПМР — Магазины</option>
-                    <option value="md_exchange">Молдова — Обменники</option>
-                    <option value="md_shop">Магазины-Молдова</option>
-                    <option value="services">Разные услуги</option>
+                    <option value="pmr_exchange">РџРњР  вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="pmr_shop">РџРњР  вЂ” РњР°РіР°Р·РёРЅС‹</option>
+                    <option value="md_exchange">РњРѕР»РґРѕРІР° вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="md_shop">РњР°РіР°Р·РёРЅС‹-РњРѕР»РґРѕРІР°</option>
+                    <option value="ua_exchange">РЈРєСЂР°РёРЅР° вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="ua_shop">РЈРєСЂР°РёРЅР° вЂ” РњР°РіР°Р·РёРЅС‹</option>
+                    <option value="services">Р Р°Р·РЅС‹Рµ СѓСЃР»СѓРіРё</option>
                 </select>
             </label>
             <label>
-                Фото
+                Р¤РѕС‚Рѕ
                 <input type="file" name="image" accept="image/*" required>
             </label>
             <label>
-                Имя карточки
-                <input name="title" placeholder="Например: New Service" required>
+                РРјСЏ РєР°СЂС‚РѕС‡РєРё
+                <input name="title" placeholder="РќР°РїСЂРёРјРµСЂ: New Service" required>
             </label>
             <label>
-                Ссылка
+                РЎСЃС‹Р»РєР°
                 <input name="link" placeholder="https://t.me/...">
             </label>
             <label class="wide">
-                Описание
-                <textarea name="description" placeholder="Коротко опиши услугу" required></textarea>
+                РћРїРёСЃР°РЅРёРµ
+                <textarea name="description" placeholder="РљРѕСЂРѕС‚РєРѕ РѕРїРёС€Рё СѓСЃР»СѓРіСѓ" required></textarea>
             </label>
         </div>
-        <button type="submit">Добавить карточку</button>
+        <button type="submit">Р”РѕР±Р°РІРёС‚СЊ РєР°СЂС‚РѕС‡РєСѓ</button>
     </form>
 
     {% if cards %}
@@ -247,12 +249,12 @@ button { width: 100%; margin-top: 12px; }
                     <div>
                         <h3>{{ card.title }}</h3>
                         <p>{{ card.description }}</p>
-                        <span class="tag">{{ card.section|section_label }}{% if card.is_default %} · стандартная{% endif %}</span>
-                        <span class="file-status">{{ card.image_src }} — {{ card.image_src|image_file_status }}</span>
+                        <span class="tag">{{ card.section|section_label }}{% if card.is_default %} В· СЃС‚Р°РЅРґР°СЂС‚РЅР°СЏ{% endif %}</span>
+                        <span class="file-status">{{ card.image_src }} вЂ” {{ card.image_src|image_file_status }}</span>
                         <div class="actions">
-                            <a class="edit-link" href="/admin/edit/{{ card.id }}">Редактировать</a>
-                            <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('Удалить карточку {{ card.title }}?')">
-                                <button class="delete-btn" type="submit">Удалить</button>
+                            <a class="edit-link" href="/admin/edit/{{ card.id }}">Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ</a>
+                            <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('РЈРґР°Р»РёС‚СЊ РєР°СЂС‚РѕС‡РєСѓ {{ card.title }}?')">
+                                <button class="delete-btn" type="submit">РЈРґР°Р»РёС‚СЊ</button>
                             </form>
                         </div>
                     </div>
@@ -260,7 +262,7 @@ button { width: 100%; margin-top: 12px; }
             {% endfor %}
         </section>
     {% else %}
-        <div class="empty">Пока нет добавленных карточек.</div>
+        <div class="empty">РџРѕРєР° РЅРµС‚ РґРѕР±Р°РІР»РµРЅРЅС‹С… РєР°СЂС‚РѕС‡РµРє.</div>
     {% endif %}
 </main>
 </body>
