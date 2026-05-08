@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Редактировать карточку | Corleone</title>
+<title>Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РєР°СЂС‚РѕС‡РєСѓ | Corleone</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 * {
@@ -123,41 +123,43 @@ button {
 <body>
 <main class="page">
     <div class="top">
-        <h1>Редактировать</h1>
-        <a href="/admin">Назад</a>
+        <h1>Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ</h1>
+        <a href="/admin">РќР°Р·Р°Рґ</a>
     </div>
 
     <form class="panel" method="post" enctype="multipart/form-data">
         <img class="preview" src="{{ card.image_src|image_src }}" alt="{{ card.title }}">
         <div class="grid">
             <label>
-                Раздел
+                Р Р°Р·РґРµР»
                 <select name="section">
-                    <option value="pmr_exchange" {% if card.section == 'pmr_exchange' %}selected{% endif %}>ПМР — Обменники</option>
-                    <option value="pmr_shop" {% if card.section == 'pmr_shop' %}selected{% endif %}>ПМР — Магазины</option>
-                    <option value="md_exchange" {% if card.section == 'md_exchange' %}selected{% endif %}>Молдова — Обменники</option>
-                    <option value="md_shop" {% if card.section == 'md_shop' %}selected{% endif %}>Магазины-Молдова</option>
-                    <option value="services" {% if card.section == 'services' %}selected{% endif %}>Разные услуги</option>
+                    <option value="pmr_exchange" {% if card.section == 'pmr_exchange' %}selected{% endif %}>РџРњР  вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="pmr_shop" {% if card.section == 'pmr_shop' %}selected{% endif %}>РџРњР  вЂ” РњР°РіР°Р·РёРЅС‹</option>
+                    <option value="md_exchange" {% if card.section == 'md_exchange' %}selected{% endif %}>РњРѕР»РґРѕРІР° вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="md_shop" {% if card.section == 'md_shop' %}selected{% endif %}>РњР°РіР°Р·РёРЅС‹-РњРѕР»РґРѕРІР°</option>
+                    <option value="ua_exchange" {% if card.section == 'ua_exchange' %}selected{% endif %}>РЈРєСЂР°РёРЅР° вЂ” РћР±РјРµРЅРЅРёРєРё</option>
+                    <option value="ua_shop" {% if card.section == 'ua_shop' %}selected{% endif %}>РЈРєСЂР°РёРЅР° вЂ” РњР°РіР°Р·РёРЅС‹</option>
+                    <option value="services" {% if card.section == 'services' %}selected{% endif %}>Р Р°Р·РЅС‹Рµ СѓСЃР»СѓРіРё</option>
                 </select>
             </label>
             <label>
-                Новое фото, если нужно
+                РќРѕРІРѕРµ С„РѕС‚Рѕ, РµСЃР»Рё РЅСѓР¶РЅРѕ
                 <input type="file" name="image" accept="image/*">
             </label>
             <label>
-                Имя карточки
+                РРјСЏ РєР°СЂС‚РѕС‡РєРё
                 <input name="title" value="{{ card.title }}" required>
             </label>
             <label>
-                Ссылка
+                РЎСЃС‹Р»РєР°
                 <input name="link" value="{{ card.link }}" required>
             </label>
             <label class="wide">
-                Описание
+                РћРїРёСЃР°РЅРёРµ
                 <textarea name="description" required>{{ card.description }}</textarea>
             </label>
         </div>
-        <button>Сохранить изменения</button>
+        <button>РЎРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ</button>
     </form>
 </main>
 </body>
