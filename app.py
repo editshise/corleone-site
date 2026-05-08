@@ -208,7 +208,7 @@ DEFAULT_CARDS = [
         "default_slug": "ghostcrypto",
         "section": "md_exchange",
         "title": "GhostCrypto",
-        "description": "Обменник",
+        "description": "РћР±РјРµРЅРЅРёРє",
         "image_src": "ghost.jpg",
         "link": "#",
         "is_default": True,
@@ -218,7 +218,7 @@ DEFAULT_CARDS = [
         "default_slug": "sinaloa_md",
         "section": "md_shop",
         "title": "SINALOA",
-        "description": "Молдова",
+        "description": "РњРѕР»РґРѕРІР°",
         "image_src": "sinaloa.jpg",
         "link": "https://t.me/SINALOAPMR",
         "is_default": True,
@@ -228,7 +228,7 @@ DEFAULT_CARDS = [
         "default_slug": "red_queen",
         "section": "services",
         "title": "Red Queen",
-        "description": "Продажа/Покупка банковских карт и кошельков (ПМР/МД)",
+        "description": "РџСЂРѕРґР°Р¶Р°/РџРѕРєСѓРїРєР° Р±Р°РЅРєРѕРІСЃРєРёС… РєР°СЂС‚ Рё РєРѕС€РµР»СЊРєРѕРІ (РџРњР /РњР”)",
         "image_src": "redq.png",
         "link": "https://t.me/umbrella01",
         "is_default": True,
@@ -265,7 +265,7 @@ def init_storage():
             username TEXT UNIQUE,
             password TEXT,
             avatar TEXT DEFAULT 'default.jpg',
-            role TEXT DEFAULT 'Пользователь',
+            role TEXT DEFAULT 'РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ',
             created_at TEXT
         )
         """
@@ -404,7 +404,7 @@ class Store:
                     "username": username,
                     "password": password,
                     "avatar": "default.jpg",
-                    "role": "Пользователь",
+                    "role": "РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ",
                     "created_at": now_display(),
                 }
             )
@@ -808,7 +808,7 @@ class Store:
             date_label = None
             if date_part != last_date:
                 today = datetime.now().strftime("%Y-%m-%d")
-                date_label = "Сегодня" if date_part == today else date_part
+                date_label = "РЎРµРіРѕРґРЅСЏ" if date_part == today else date_part
                 last_date = date_part
 
             user_data = users.get(item.get("user"), {})
@@ -832,7 +832,7 @@ class Store:
                     "likes": item.get("likes") or 0,
                     "fires": item.get("fires") or 0,
                     "hearts": item.get("hearts") or 0,
-                    "is_admin": role == "Админ" or username.lower() in ("admin", "corleone", "don7"),
+                    "is_admin": role == "РђРґРјРёРЅ" or username.lower() in ("admin", "corleone", "don7"),
                     "reply_user": reply.get("user") if reply else None,
                     "reply_message": reply.get("message") if reply else None,
                 }
@@ -910,29 +910,29 @@ app.jinja_env.filters["image_src"] = image_src
 
 def image_file_status(value):
     if not value:
-        return "нет файла"
+        return "РЅРµС‚ С„Р°Р№Р»Р°"
     if value.startswith("data:"):
-        return "в базе"
+        return "РІ Р±Р°Р·Рµ"
     if value.startswith("http://") or value.startswith("https://"):
-        return "внешняя ссылка"
+        return "РІРЅРµС€РЅСЏСЏ СЃСЃС‹Р»РєР°"
     path = os.path.join(IMG_FOLDER, value)
     if os.path.exists(path):
         size = os.path.getsize(path)
-        return f"файл найден, {size} байт"
-    return "файл не найден"
+        return f"С„Р°Р№Р» РЅР°Р№РґРµРЅ, {size} Р±Р°Р№С‚"
+    return "С„Р°Р№Р» РЅРµ РЅР°Р№РґРµРЅ"
 
 
 app.jinja_env.filters["image_file_status"] = image_file_status
 
 
 SECTION_LABELS = {
-    "pmr_exchange": "ПМР — Обменники",
-    "pmr_shop": "ПМР — Магазины",
-    "md_exchange": "Молдова — Обменники",
-    "md_shop": "Магазины-Молдова",
-    "ua_exchange": "Украина — Обменники",
-    "ua_shop": "Украина — Магазины",
-    "services": "Разные услуги",
+    "pmr_exchange": "РџРњР  вЂ” РћР±РјРµРЅРЅРёРєРё",
+    "pmr_shop": "РџРњР  вЂ” РњР°РіР°Р·РёРЅС‹",
+    "md_exchange": "РњРѕР»РґРѕРІР° вЂ” РћР±РјРµРЅРЅРёРєРё",
+    "md_shop": "РњР°РіР°Р·РёРЅС‹-РњРѕР»РґРѕРІР°",
+    "ua_exchange": "РЈРєСЂР°РёРЅР° вЂ” РћР±РјРµРЅРЅРёРєРё",
+    "ua_shop": "РЈРєСЂР°РёРЅР° вЂ” РњР°РіР°Р·РёРЅС‹",
+    "services": "Р Р°Р·РЅС‹Рµ СѓСЃР»СѓРіРё",
 }
 
 
@@ -948,6 +948,8 @@ def no_cache(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
+    if response.mimetype == "text/html":
+        response.headers["Content-Type"] = "text/html; charset=utf-8"
     return response
 
 
@@ -985,11 +987,11 @@ def admin():
             banner_src_value = save_admin_image(banner_file, "banner")
             if banner_src_value:
                 Store.set_setting("hero_banner", banner_src_value)
-                session["admin_notice"] = "Баннер сохранен."
+                session["admin_notice"] = "Р‘Р°РЅРЅРµСЂ СЃРѕС…СЂР°РЅРµРЅ."
             elif banner_file and banner_file.filename:
-                session["admin_error"] = "Баннер не сохранился: файл не похож на картинку или пустой."
+                session["admin_error"] = "Р‘Р°РЅРЅРµСЂ РЅРµ СЃРѕС…СЂР°РЅРёР»СЃСЏ: С„Р°Р№Р» РЅРµ РїРѕС…РѕР¶ РЅР° РєР°СЂС‚РёРЅРєСѓ РёР»Рё РїСѓСЃС‚РѕР№."
             else:
-                session["admin_notice"] = "Ссылка баннера сохранена."
+                session["admin_notice"] = "РЎСЃС‹Р»РєР° Р±Р°РЅРЅРµСЂР° СЃРѕС…СЂР°РЅРµРЅР°."
             banner_link_value = clean_external_link(request.form.get("banner_link")) or "https://t.me/doncrln"
             Store.set_setting("hero_banner_link", banner_link_value)
             return redirect("/admin")
@@ -1003,13 +1005,13 @@ def admin():
 
         if title and description and image_src_value:
             Store.add_card(section, title, description, link, image_src_value)
-            session["admin_notice"] = "Карточка сохранена."
+            session["admin_notice"] = "РљР°СЂС‚РѕС‡РєР° СЃРѕС…СЂР°РЅРµРЅР°."
         elif not title or not description:
-            session["admin_error"] = "Карточка не сохранилась: заполни имя и описание."
+            session["admin_error"] = "РљР°СЂС‚РѕС‡РєР° РЅРµ СЃРѕС…СЂР°РЅРёР»Р°СЃСЊ: Р·Р°РїРѕР»РЅРё РёРјСЏ Рё РѕРїРёСЃР°РЅРёРµ."
         elif image_file and image_file.filename:
-            session["admin_error"] = "Карточка не сохранилась: фото не похоже на картинку или файл пустой."
+            session["admin_error"] = "РљР°СЂС‚РѕС‡РєР° РЅРµ СЃРѕС…СЂР°РЅРёР»Р°СЃСЊ: С„РѕС‚Рѕ РЅРµ РїРѕС…РѕР¶Рµ РЅР° РєР°СЂС‚РёРЅРєСѓ РёР»Рё С„Р°Р№Р» РїСѓСЃС‚РѕР№."
         else:
-            session["admin_error"] = "Карточка не сохранилась: выбери фото."
+            session["admin_error"] = "РљР°СЂС‚РѕС‡РєР° РЅРµ СЃРѕС…СЂР°РЅРёР»Р°СЃСЊ: РІС‹Р±РµСЂРё С„РѕС‚Рѕ."
 
         return redirect("/admin")
 
@@ -1063,7 +1065,7 @@ def admin_login():
             session.permanent = True
             session["admin"] = True
             return redirect("/admin")
-        error = "Неверный пароль"
+        error = "РќРµРІРµСЂРЅС‹Р№ РїР°СЂРѕР»СЊ"
 
     return render_template("admin_login.html", error=error)
 
