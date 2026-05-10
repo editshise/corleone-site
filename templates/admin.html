@@ -115,6 +115,29 @@ button { width: 100%; margin-top: 12px; }
     align-items: stretch;
     margin-top: 12px;
 }
+.order-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+}
+.order-actions form {
+    margin: 0;
+}
+.order-actions button,
+.order-save button {
+    margin-top: 0;
+    background: linear-gradient(135deg, #1f2937, #4b5563);
+}
+.order-save {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 8px;
+    margin-top: 8px;
+}
+.order-save input {
+    text-align: center;
+}
 .delete-form { flex: 1; }
 .delete-btn {
     background: linear-gradient(135deg, #991b1b, #ef4444);
@@ -164,6 +187,7 @@ button { width: 100%; margin-top: 12px; }
     .item { grid-template-columns: 1fr; }
     .item img { width: 100%; aspect-ratio: 16 / 9; }
     .actions { flex-direction: column; }
+    .order-save { grid-template-columns: 1fr; }
 }
 </style>
 </head>
@@ -251,6 +275,20 @@ button { width: 100%; margin-top: 12px; }
                         <p>{{ card.description }}</p>
                         <span class="tag">{{ card.section|section_label }}{% if card.is_default %} · стандартная{% endif %}</span>
                         <span class="file-status">{{ card.image_src }} — {{ card.image_src|image_file_status }}</span>
+                        {% if not card.is_default %}
+                        <div class="order-actions">
+                            <form method="post" action="/admin/reorder/{{ card.id }}/up">
+                                <button type="submit">Вверх</button>
+                            </form>
+                            <form method="post" action="/admin/reorder/{{ card.id }}/down">
+                                <button type="submit">Вниз</button>
+                            </form>
+                        </div>
+                        <form class="order-save" method="post" action="/admin/order/{{ card.id }}">
+                            <input type="number" name="sort_order" min="1" value="{{ card.sort_order or loop.index }}" aria-label="Порядок карточки">
+                            <button type="submit">Поставить номер</button>
+                        </form>
+                        {% endif %}
                         <div class="actions">
                             <a class="edit-link" href="/admin/edit/{{ card.id }}">Редактировать</a>
                             <form class="delete-form" method="post" action="/admin/delete/{{ card.id }}" onsubmit="return confirm('Удалить карточку {{ card.title }}?')">
