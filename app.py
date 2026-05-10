@@ -595,9 +595,17 @@ class Store:
         return value
 
     @staticmethod
-    def add_card(section, title, description, link, image_src):
+    def normalize_sort_order(value):
+        try:
+            value = int(value)
+        except (TypeError, ValueError):
+            return None
+        return max(1, value)
+
+    @staticmethod
+    def add_card(section, title, description, link, image_src, sort_order=None):
         if FIREBASE_DB:
-            sort_order = Store.next_sort_order(section)
+            sort_order = Store.normalize_sort_order(sort_order) or Store.next_sort_order(section)
             FIREBASE_DB.collection("cards").document(str(uuid.uuid4())).set(
                 {
                     "section": section,
@@ -614,8 +622,10 @@ class Store:
 
         conn = db()
         c = conn.cursor()
-        c.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM cards WHERE section=?", (section,))
-        sort_order = c.fetchone()[0]
+        sort_order = Store.normalize_sort_order(sort_order)
+        if not sort_order:
+            c.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM cards WHERE section=?", (section,))
+            sort_order = c.fetchone()[0]
         image_name = image_src if not image_src.startswith("data:") else "uploaded"
         c.execute(
             """
@@ -672,7 +682,7 @@ class Store:
         }
 
     @staticmethod
-    def update_card(card_id, section, title, description, link, image_src=None):
+    def update_card(card_id, section, title, description, link, image_src=None, sort_order=None):
         if str(card_id).startswith("default:"):
             slug = str(card_id).split(":", 1)[1]
             current = Store.get_card(card_id)
@@ -712,8 +722,11 @@ class Store:
             "link": link,
         }
         current = Store.get_card(card_id)
+        sort_order_value = Store.normalize_sort_order(sort_order)
         if current and current.get("section") != section:
-            payload["sort_order"] = Store.next_sort_order(section)
+            payload["sort_order"] = sort_order_value or Store.next_sort_order(section)
+        elif sort_order_value:
+            payload["sort_order"] = sort_order_value
         if image_src:
             payload["image"] = image_src
             payload["image_src"] = image_src
@@ -725,10 +738,11 @@ class Store:
         conn = db()
         c = conn.cursor()
         sort_order_sql = ""
-        sort_order_value = None
         if current and current.get("section") != section:
             sort_order_sql = ", sort_order=?"
-            sort_order_value = Store.next_sort_order(section)
+            sort_order_value = sort_order_value or Store.next_sort_order(section)
+        elif sort_order_value:
+            sort_order_sql = ", sort_order=?"
         if image_src:
             image_name = image_src if not image_src.startswith("data:") else "uploaded"
             params = [section, title, description, link, image_name, image_src]
@@ -1115,11 +1129,12 @@ def admin():
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         link = clean_external_link(request.form.get("link")) or "#"
+        sort_order = request.form.get("sort_order")
         image_file = request.files.get("image")
         image_src_value = save_admin_image(image_file, "card")
 
         if title and description and image_src_value:
-            Store.add_card(section, title, description, link, image_src_value)
+            Store.add_card(section, title, description, link, image_src_value, sort_order)
             session["admin_notice"] = "Карточка сохранена."
         elif not title or not description:
             session["admin_error"] = "Карточка не сохранилась: заполни имя и описание."
@@ -1154,10 +1169,11 @@ def admin_edit(card_id):
         title = request.form.get("title", "").strip()
         description = request.form.get("description", "").strip()
         link = clean_external_link(request.form.get("link")) or "#"
+        sort_order = request.form.get("sort_order")
         image_src_value = save_admin_image(request.files.get("image"), "card")
 
         if title and description:
-            Store.update_card(card_id, section, title, description, link, image_src_value)
+            Store.update_card(card_id, section, title, description, link, image_src_value, sort_order)
             return redirect("/admin")
 
     return render_template("admin_edit.html", card=card)
