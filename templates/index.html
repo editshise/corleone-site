@@ -608,7 +608,8 @@ h1 {
 
 <h2>Магазины-Молдова</h2>
 
-{% for card in default_cards_by_section.get('md_shop', []) %}
+{% set md_shop_cards = default_cards_by_section.get('md_shop', []) + cards_by_section.get('md_shop', []) %}
+{% for card in md_shop_cards if card.title|trim|lower == 'lukoil' %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
@@ -617,7 +618,16 @@ h1 {
 </div>
 {% endfor %}
 
-{% for card in cards_by_section.get('md_shop', []) %}
+{% for card in md_shop_cards if card.title|trim|lower != 'lukoil' and card.title|trim|lower != 'sinaloa' %}
+<div class="card">
+    <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
+    <h3>{{ card.title }}</h3>
+    <p>{{ card.description }}</p>
+    <a href="{{ card.link }}">Перейти</a>
+</div>
+{% endfor %}
+
+{% for card in md_shop_cards if card.title|trim|lower == 'sinaloa' %}
 <div class="card">
     <img src="{{ card.image_src|image_src }}" alt="{{ card.title }}" onerror="this.src='/static/img/default.jpg'">
     <h3>{{ card.title }}</h3>
