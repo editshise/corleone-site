@@ -337,6 +337,8 @@ def init_storage():
     ensure_column(c, "chat", "fires", "INTEGER DEFAULT 0")
     ensure_column(c, "chat", "hearts", "INTEGER DEFAULT 0")
     ensure_column(c, "cards", "image_src", "TEXT")
+    ensure_column(c, "cards", "sort_order", "INTEGER DEFAULT 0")
+    c.execute("UPDATE cards SET sort_order=id WHERE sort_order IS NULL OR sort_order=0")
     c.execute("UPDATE users SET avatar='default.jpg' WHERE avatar IS NULL OR avatar='default.png'")
     conn.commit()
     conn.close()
@@ -547,12 +549,19 @@ class Store:
                 item = doc.to_dict()
                 item["id"] = doc.id
                 item["image_src"] = item.get("image_src") or item.get("image") or ""
+                item["sort_order"] = int(item.get("sort_order") or 0)
                 cards.append(item)
-            return sorted(cards, key=lambda item: item.get("created_at", ""), reverse=True)
+            return sorted(cards, key=lambda item: (item.get("section", ""), item.get("sort_order") or 0, item.get("created_at", "")))
 
         conn = db()
         c = conn.cursor()
-        c.execute("SELECT id, section, title, description, image, link, COALESCE(image_src, '') FROM cards ORDER BY id DESC")
+        c.execute(
+            """
+            SELECT id, section, title, description, image, link, COALESCE(image_src, ''), COALESCE(sort_order, id)
+            FROM cards
+            ORDER BY section ASC, COALESCE(sort_order, id) ASC, id ASC
+            """
+        )
         rows = c.fetchall()
         conn.close()
         return [
@@ -564,13 +573,31 @@ class Store:
                 "image": row[4],
                 "link": row[5],
                 "image_src": row[6] or row[4],
+                "sort_order": row[7],
             }
             for row in rows
         ]
 
     @staticmethod
+    def next_sort_order(section):
+        if FIREBASE_DB:
+            current = [
+                int((doc.to_dict() or {}).get("sort_order") or 0)
+                for doc in FIREBASE_DB.collection("cards").where("section", "==", section).stream()
+            ]
+            return (max(current) if current else 0) + 1
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM cards WHERE section=?", (section,))
+        value = c.fetchone()[0]
+        conn.close()
+        return value
+
+    @staticmethod
     def add_card(section, title, description, link, image_src):
         if FIREBASE_DB:
+            sort_order = Store.next_sort_order(section)
             FIREBASE_DB.collection("cards").document(str(uuid.uuid4())).set(
                 {
                     "section": section,
@@ -579,6 +606,7 @@ class Store:
                     "image": image_src,
                     "image_src": image_src,
                     "link": link,
+                    "sort_order": sort_order,
                     "created_at": now_full(),
                 }
             )
@@ -586,13 +614,15 @@ class Store:
 
         conn = db()
         c = conn.cursor()
+        c.execute("SELECT COALESCE(MAX(sort_order), 0) + 1 FROM cards WHERE section=?", (section,))
+        sort_order = c.fetchone()[0]
         image_name = image_src if not image_src.startswith("data:") else "uploaded"
         c.execute(
             """
-            INSERT INTO cards (section, title, description, image, image_src, link, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO cards (section, title, description, image, image_src, link, sort_order, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (section, title, description, image_name, image_src, link, now_display()),
+            (section, title, description, image_name, image_src, link, sort_order, now_display()),
         )
         conn.commit()
         conn.close()
@@ -613,11 +643,19 @@ class Store:
             item = doc.to_dict()
             item["id"] = doc.id
             item["image_src"] = item.get("image_src") or item.get("image") or ""
+            item["sort_order"] = int(item.get("sort_order") or 0)
             return item
 
         conn = db()
         c = conn.cursor()
-        c.execute("SELECT id, section, title, description, image, link, COALESCE(image_src, '') FROM cards WHERE id=?", (card_id,))
+        c.execute(
+            """
+            SELECT id, section, title, description, image, link, COALESCE(image_src, ''), COALESCE(sort_order, id)
+            FROM cards
+            WHERE id=?
+            """,
+            (card_id,),
+        )
         row = c.fetchone()
         conn.close()
         if not row:
@@ -630,6 +668,7 @@ class Store:
             "image": row[4],
             "link": row[5],
             "image_src": row[6] or row[4],
+            "sort_order": row[7],
         }
 
     @staticmethod
@@ -672,6 +711,9 @@ class Store:
             "description": description,
             "link": link,
         }
+        current = Store.get_card(card_id)
+        if current and current.get("section") != section:
+            payload["sort_order"] = Store.next_sort_order(section)
         if image_src:
             payload["image"] = image_src
             payload["image_src"] = image_src
@@ -682,24 +724,37 @@ class Store:
 
         conn = db()
         c = conn.cursor()
+        sort_order_sql = ""
+        sort_order_value = None
+        if current and current.get("section") != section:
+            sort_order_sql = ", sort_order=?"
+            sort_order_value = Store.next_sort_order(section)
         if image_src:
             image_name = image_src if not image_src.startswith("data:") else "uploaded"
+            params = [section, title, description, link, image_name, image_src]
+            if sort_order_value is not None:
+                params.append(sort_order_value)
+            params.append(card_id)
             c.execute(
-                """
+                f"""
                 UPDATE cards
-                SET section=?, title=?, description=?, link=?, image=?, image_src=?
+                SET section=?, title=?, description=?, link=?, image=?, image_src=?{sort_order_sql}
                 WHERE id=?
                 """,
-                (section, title, description, link, image_name, image_src, card_id),
+                tuple(params),
             )
         else:
+            params = [section, title, description, link]
+            if sort_order_value is not None:
+                params.append(sort_order_value)
+            params.append(card_id)
             c.execute(
-                """
+                f"""
                 UPDATE cards
-                SET section=?, title=?, description=?, link=?
+                SET section=?, title=?, description=?, link=?{sort_order_sql}
                 WHERE id=?
                 """,
-                (section, title, description, link, card_id),
+                tuple(params),
             )
         conn.commit()
         conn.close()
@@ -719,6 +774,64 @@ class Store:
         c.execute("DELETE FROM cards WHERE id=?", (card_id,))
         conn.commit()
         conn.close()
+
+    @staticmethod
+    def reorder_card(card_id, direction):
+        if str(card_id).startswith("default:"):
+            return False
+
+        current = Store.get_card(card_id)
+        if not current:
+            return False
+
+        section = current.get("section")
+        current_order = int(current.get("sort_order") or 0)
+        cards = [card for card in Store.cards() if card.get("section") == section]
+        if direction == "up":
+            candidates = [card for card in cards if int(card.get("sort_order") or 0) < current_order]
+            other = candidates[-1] if candidates else None
+        else:
+            candidates = [card for card in cards if int(card.get("sort_order") or 0) > current_order]
+            other = candidates[0] if candidates else None
+
+        if not other:
+            return False
+
+        other_order = int(other.get("sort_order") or 0)
+        if FIREBASE_DB:
+            FIREBASE_DB.collection("cards").document(str(current["id"])).set({"sort_order": other_order}, merge=True)
+            FIREBASE_DB.collection("cards").document(str(other["id"])).set({"sort_order": current_order}, merge=True)
+            return True
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("UPDATE cards SET sort_order=? WHERE id=?", (other_order, current["id"]))
+        c.execute("UPDATE cards SET sort_order=? WHERE id=?", (current_order, other["id"]))
+        conn.commit()
+        conn.close()
+        return True
+
+    @staticmethod
+    def set_card_order(card_id, sort_order):
+        if str(card_id).startswith("default:"):
+            return False
+
+        try:
+            sort_order = max(1, int(sort_order))
+        except (TypeError, ValueError):
+            return False
+
+        if FIREBASE_DB:
+            FIREBASE_DB.collection("cards").document(str(card_id)).set({"sort_order": sort_order}, merge=True)
+            return True
+
+        conn = db()
+        c = conn.cursor()
+        c.execute("UPDATE cards SET sort_order=? WHERE id=?", (sort_order, card_id))
+        changed = c.rowcount > 0
+        conn.commit()
+        conn.close()
+        return changed
 
     @staticmethod
     def add_message(user, message, file_name, original_name, message_type, reply_to):
@@ -1056,6 +1169,28 @@ def admin_delete(card_id):
         return redirect("/admin/login")
 
     Store.delete_card(card_id)
+    return redirect("/admin")
+
+
+@app.route("/admin/reorder/<card_id>/<direction>", methods=["POST"])
+def admin_reorder(card_id, direction):
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    if direction in ("up", "down"):
+        Store.reorder_card(card_id, direction)
+    return redirect("/admin")
+
+
+@app.route("/admin/order/<card_id>", methods=["POST"])
+def admin_order(card_id):
+    if not session.get("admin"):
+        return redirect("/admin/login")
+
+    if Store.set_card_order(card_id, request.form.get("sort_order")):
+        session["admin_notice"] = "Порядок карточки сохранен."
+    else:
+        session["admin_error"] = "Порядок можно менять только у добавленных карточек."
     return redirect("/admin")
 
 
