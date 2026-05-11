@@ -216,6 +216,16 @@ DEFAULT_CARDS = [
         "is_default": True,
     },
     {
+        "id": "default:babushaltc",
+        "default_slug": "babushaltc",
+        "section": "md_exchange",
+        "title": "BabushaLTC",
+        "description": "",
+        "image_src": "babushaltc.jpg",
+        "link": "https://t.me/babuskaltc",
+        "is_default": True,
+    },
+    {
         "id": "default:sinaloa_md",
         "default_slug": "sinaloa_md",
         "section": "md_shop",
