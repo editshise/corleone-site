@@ -242,7 +242,7 @@ DEFAULT_CARDS = [
         "title": "Red Queen",
         "description": "Продажа/Покупка банковских карт и кошельков (ПМР/МД)",
         "image_src": "redq.png",
-        "link": "https://t.me/umbrella01",
+        "link": "https://t.me/redqueenmd",
         "is_default": True,
     },
 ]
